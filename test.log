@@ -1,0 +1,71 @@
+[INFO]: 18-Feb-22 17:32:35 - Test-Bot was logged in
+[INFO]: 18-Feb-22 17:32:35 - Testing "Заявки" - has begun...
+[INFO]: 18-Feb-22 17:32:36 - Button "Создать" - working correctly
+[INFO]: 18-Feb-22 17:32:36 - Input "Фамилия" - filled correctly
+[INFO]: 18-Feb-22 17:32:36 - Input "Имя" - filled correctly
+[INFO]: 18-Feb-22 17:32:36 - Input "Отчество" - filled correctly
+[INFO]: 18-Feb-22 17:32:36 - Input "Дата рождения" - filled correctly
+[INFO]: 18-Feb-22 17:32:38 - Input "Должность" - filled correctly
+[INFO]: 18-Feb-22 17:32:39 - Input "Гражданство" - filled correctly
+[ERROR]: 18-Feb-22 17:32:40 - Upload document failed. Message: javascript error: removeAttribute is not defined
+  (Session info: chrome=98.0.4758.102)
+Stacktrace:
+0   chromedriver                        0x000000010b9baee9 chromedriver + 5013225
+1   chromedriver                        0x000000010b9461d3 chromedriver + 4534739
+2   chromedriver                        0x000000010b51ca68 chromedriver + 170600
+3   chromedriver                        0x000000010b51f8b1 chromedriver + 182449
+4   chromedriver                        0x000000010b51f6d1 chromedriver + 181969
+5   chromedriver                        0x000000010b52026d chromedriver + 184941
+6   chromedriver                        0x000000010b581ce3 chromedriver + 584931
+7   chromedriver                        0x000000010b56e7e2 chromedriver + 505826
+8   chromedriver                        0x000000010b581074 chromedriver + 581748
+9   chromedriver                        0x000000010b56e6d3 chromedriver + 505555
+10  chromedriver                        0x000000010b54476e chromedriver + 333678
+11  chromedriver                        0x000000010b545745 chromedriver + 337733
+12  chromedriver                        0x000000010b976efe chromedriver + 4734718
+13  chromedriver                        0x000000010b990a19 chromedriver + 4839961
+14  chromedriver                        0x000000010b9961c8 chromedriver + 4862408
+15  chromedriver                        0x000000010b9913aa chromedriver + 4842410
+16  chromedriver                        0x000000010b96ba01 chromedriver + 4688385
+17  chromedriver                        0x000000010b9ac538 chromedriver + 4953400
+18  chromedriver                        0x000000010b9ac6c1 chromedriver + 4953793
+19  chromedriver                        0x000000010b9c2225 chromedriver + 5042725
+20  libsystem_pthread.dylib             0x00007fff206ef8fc _pthread_start + 224
+21  libsystem_pthread.dylib             0x00007fff206eb443 thread_start + 15
+
+[INFO]: 18-Feb-22 17:32:41 - Input "Номер" of the document filled correctly
+[INFO]: 18-Feb-22 17:32:41 - Input "Дата выдачи" of the document filled correctly
+[ERROR]: 18-Feb-22 17:32:42 - Input "Дата окончания" of the document filled incorrect. Message: element not interactable
+  (Session info: chrome=98.0.4758.102)
+Stacktrace:
+0   chromedriver                        0x000000010b9baee9 chromedriver + 5013225
+1   chromedriver                        0x000000010b9461d3 chromedriver + 4534739
+2   chromedriver                        0x000000010b51c91f chromedriver + 170271
+3   chromedriver                        0x000000010b54b68e chromedriver + 362126
+4   chromedriver                        0x000000010b54ac8b chromedriver + 359563
+5   chromedriver                        0x000000010b56e7e2 chromedriver + 505826
+6   chromedriver                        0x000000010b545bf5 chromedriver + 338933
+7   chromedriver                        0x000000010b56e8ee chromedriver + 506094
+8   chromedriver                        0x000000010b581074 chromedriver + 581748
+9   chromedriver                        0x000000010b56e6d3 chromedriver + 505555
+10  chromedriver                        0x000000010b54476e chromedriver + 333678
+11  chromedriver                        0x000000010b545745 chromedriver + 337733
+12  chromedriver                        0x000000010b976efe chromedriver + 4734718
+13  chromedriver                        0x000000010b990a19 chromedriver + 4839961
+14  chromedriver                        0x000000010b9961c8 chromedriver + 4862408
+15  chromedriver                        0x000000010b9913aa chromedriver + 4842410
+16  chromedriver                        0x000000010b96ba01 chromedriver + 4688385
+17  chromedriver                        0x000000010b9ac538 chromedriver + 4953400
+18  chromedriver                        0x000000010b9ac6c1 chromedriver + 4953793
+19  chromedriver                        0x000000010b9c2225 chromedriver + 5042725
+20  libsystem_pthread.dylib             0x00007fff206ef8fc _pthread_start + 224
+21  libsystem_pthread.dylib             0x00007fff206eb443 thread_start + 15
+
+[ERROR]: 18-Feb-22 17:32:53 - Documents upload failed. Message: 
+
+[ERROR]: 18-Feb-22 17:33:03 - Something wrong happens. Unit don't saved. Message: 
+
+[INFO]: 18-Feb-22 17:33:03 - Creating unit has been finished!
+[INFO]: 18-Feb-22 17:33:03 - Unit "Друзев Марсель Арнольдович" successfully created!
+[INFO]: 18-Feb-22 17:33:03 - Dropdown "Заявки" and all of elements in it - working correctly
+[INFO]: 18-Feb-22 17:33:03 - Testing "Заявки" - has finished!
