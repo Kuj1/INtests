@@ -55,11 +55,21 @@ doc_type_name = [
     '//a[@doctypename="Медицинская книжка"]',
 ]
 
+name_vehicle = 'Toyota'
+number_vehicle = 'БА1234В'
+vin_vehicle = '11223355'
+exp_year_vehicle = '25.02.1982'
+capacity_vehicle = '120'
+owners_company_vehicle = '7804016807'
+owners_company_name = 'ОАО "АБЗ-1"'
+
 # Workers filter dataset
 filter_organization = 'АО "ПРЕМЬЕРСТРОЙ"'
 filter_name = 'new'
 filter_position = 'Тунеядец'
 filter_birth = '01.01.1961'
+# Vehicles filter dataset
+filter_datepick = '03.03.2020'
 
 
 def time_prop(start, end, format, prop):
