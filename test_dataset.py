@@ -1,15 +1,12 @@
-# import datetime
-# import random
 import time
+import random
 
-
+# Worker data
 first_name = [
-    'Арнольд', 'Евсей', 'Ермак',
-    'Леонардо', 'Нобель', 'Марсель',
-    'Роберт', 'Рафаэль', 'Рудольф',
-    'Феликс', 'Андрей', 'Александр',
-    'Максим', 'Григорий', 'Денис',
-    'Павел', 'Константин', 'Владислав'
+    'Арнольд', 'Ермак', 'Леонард',
+    'Роберт', 'Рудольф', 'Феликс',
+    'Александр', 'Максим', 'Денис',
+    'Константин', 'Владислав'
 ]
 
 surname = [
@@ -29,14 +26,12 @@ surname = [
     'Курбанов', 'Кубов', 'Уравненьев'
 ]
 
-middle_name = [
-    'Арнольдович', 'Евсеивич', 'Ермакович',
-    'Леонардович', 'Нобельевич', 'Марсельевич',
-    'Робертович', 'Рафаэльевич', 'Рудольфович',
-    'Феликсович', 'Андреевич', 'Александрович',
-    'Максимович', 'Григориевич', 'Денисович',
-    'Павлович', 'Константинович', 'Владиславович'
-]
+
+def middle_name():
+    new_middle_name = f'{random.choice(first_name)}ович'
+
+    return new_middle_name
+
 
 real_position = [
     'Сварщик', 'Водитель', 'Мессия',
@@ -54,22 +49,6 @@ doc_type_name = [
     '«СОГАЗ ПРОФМЕДИЦИНА» или гарантийное письмо об оплате услуг по тестированию."]',
     '//a[@doctypename="Медицинская книжка"]',
 ]
-
-name_vehicle = 'Toyota'
-number_vehicle = 'БА1234В'
-vin_vehicle = '11223355'
-exp_year_vehicle = '25.02.1982'
-capacity_vehicle = '120'
-owners_company_vehicle = '7804016807'
-owners_company_name = 'ОАО "АБЗ-1"'
-
-# Workers filter dataset
-filter_organization = 'АО "ПРЕМЬЕРСТРОЙ"'
-filter_name = 'new'
-filter_position = 'Тунеядец'
-filter_birth = '01.01.1961'
-# Vehicles filter dataset
-filter_datepick = '03.03.2020'
 
 
 def time_prop(start, end, format, prop):
@@ -91,3 +70,45 @@ def time_prop(start, end, format, prop):
 
 def random_date(start, end, prop):
     return time_prop(start, end, '%d.%m.%Y', prop)
+
+
+# Vehicle data
+name_vehicle = [
+    'Toyota', 'BMW', 'Mercedes',
+    'ВАЗ', 'Geely', 'Hummer',
+    'Волга', 'УАЗ', 'Chevrolet'
+]
+
+
+def numberplate():
+    chars = 'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЭЮЯ'
+    nums = '1234567890'
+    new_numberplate = f'{random.choice(chars)}{random.choice(nums)}{random.choice(nums)}{random.choice(nums)}' \
+                      f'{random.choice(chars)}{random.choice(chars)}'
+
+    return new_numberplate
+
+
+def vin_vehicle():
+    chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'
+    length = 17
+    new_vin = ''
+    for i in range(length):
+        new_vin += random.choice(chars)
+
+    return new_vin
+
+
+exp_year_vehicle = random_date('1.1.1970', '1.1.2003', random.random())
+capacity_vehicle = random.randint(100, 300)
+owners_company_vehicle = '7804016807'
+owners_company_name = 'ОАО "АБЗ-1"'
+
+# Workers filter dataset
+filter_organization = 'АО "ПРЕМЬЕРСТРОЙ"'
+filter_name = 'new'
+filter_position = 'Тунеядец'
+filter_birth = '01.01.1961'
+
+# Vehicles filter dataset
+filter_datepick = '03.03.2020'
