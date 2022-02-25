@@ -10,9 +10,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
+from bs4 import BeautifulSoup
 
-from test_dataset import filter_name, filter_position, \
-    filter_organization, filter_birth, filter_datepick
+from test_dataset import filter_organization, filter_name, filter_birth, filter_position, filter_datepick
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -70,6 +70,61 @@ driver = enable_download_in_headless_chrome(driver, stuff_path)
 
 # Other var
 timeout = 10
+
+
+def filter_for_deletion(request):
+    """
+    Testing filter from the list item "Заявки на удаление"
+    :param request: the value to be filtered by
+    :return:
+    """
+    open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+        (By.ID, 'btnFilterDesktop')))
+    open_filter.click()
+
+    type_request = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+        (By.XPATH, '//button[@data-id="AppType"]')))
+    type_request.click()
+
+    change_type_request = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+        (By.XPATH, './/div/input[@type="text"]')))
+    change_type_request.send_keys(request, Keys.ENTER)
+
+    filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+        (By.XPATH, '//input[@value="Применить"]')))
+    filter_enter.click()
+
+    soup_req = BeautifulSoup(driver.page_source, 'html.parser')
+    table_req = soup_req.find('table', class_="table table-hover")
+    info_delete = [i['class'] for i in table_req.find_all('i', class_='fa')]
+    info_delete_smallest = [j for j in info_delete if j[1] != 'fa-lock']
+    workers_delete = list()
+    for check_class in info_delete_smallest:
+        for check_right_icon in check_class:
+            if check_right_icon != 'fa':
+                workers_delete.append(check_right_icon)
+
+    if request == 'Сотрудник на удаление':
+        error = 0
+        for check_workers in workers_delete:
+            if check_workers != 'fa-users':
+                error += 1
+                break
+        if error >= 1:
+            logging.error('Method "Сотрудник на удаление" of filter "Тип запроса" working incorrect')
+        else:
+            logging.info('Method "Сотрудник на удаление" of filter "Тип запроса" working correctly')
+
+    elif request == 'Транспортное средство на удаление':
+        error = 0
+        for check_workers in workers_delete:
+            if check_workers != 'fa-car':
+                error += 1
+                break
+        if error >= 1:
+            logging.error('Method "Транспортное средство на удаление" of filter "Тип запроса" working incorrect')
+        else:
+            logging.info('Method "Транспортное средство на удаление" of filter "Тип запроса" working correctly')
 
 
 def input_elem(elem, key, key_bind):
@@ -538,6 +593,8 @@ def check_data(url):
             app_wrap = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
                 (By.XPATH, '//a[@href="#applicantApplications"]')))
             app_wrap.click()
+            # time.sleep(1)
+            # app_wrap.click()
 
             # Workers
             try:
@@ -854,6 +911,226 @@ def check_data(url):
                     logging.info('Input "Дата выпуска" - working correctly')
             except BaseException as ex:
                 logging.error(ex)
+
+            # For deletion
+            try:
+                for_delete = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion"]')))
+                try:
+                    for_delete.click()
+                except BaseException as ex:
+                    logging.error(f'List item "На удаление" - working incorrect. {ex}')
+                else:
+                    logging.info('List item "На удаление" - working correctly')
+                first_request = 'Транспортное средство на удаление'
+                second_request = 'Сотрудник на удаление'
+
+                filter_for_deletion(first_request)
+                driver.execute_script('resetFilter()')
+                time.sleep(1)
+
+                filter_for_deletion(second_request)
+                driver.execute_script('resetFilter()')
+                time.sleep(1)
+
+                driver.execute_script('openFilterBlock(this)')
+                try:
+                    filter_date_from = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'dateFrom')))
+                    filter_date_from.send_keys('09.08.2021')
+
+                    filter_date_to = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'dateTo')))
+                    filter_date_to.send_keys('09.08.2021', Keys.ENTER)
+
+                    filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//input[@value="Применить"]')))
+                    filter_enter.click()
+
+                    soup_req = BeautifulSoup(driver.page_source, 'html.parser')
+                    table_req = soup_req.find('table', class_="table table-hover")
+                    rows = table_req.find_all('tr')
+                    cells = [row.find_all('td') for row in rows]
+                    date_create = list()
+                    for cell in cells:
+                        count = 0
+                        for check_cell in cell:
+                            count += 1
+                            if count == 4:
+                                res = check_cell.text.strip().split(' ')[:1]
+                                for check_res in res:
+                                    date_create.append(check_res)
+                                count = 0
+                    error = 0
+                    for check_date in date_create:
+                        if check_date != '09.08.2021':
+                            error += 1
+                    if error >= 1:
+                        logging.error('"Дата" filter working incorrect')
+                    else:
+                        logging.info('"Дата" filter working correct')
+
+                except BaseException as ex:
+                    logging.error(f'Input "Дата" from filter "Заявки на удаление" - working incorrect. {ex}')
+                else:
+                    logging.info(f'Input "Дата" from filter "Заявки на удаление" - working correct')
+
+                detailed_view = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion/WorkerDetails/201"]')))
+                try:
+                    detailed_view.click()
+                except BaseException as ex:
+                    logging.error(f'Detailed view of the application for deletion is working incorrect. {ex}')
+                else:
+                    logging.info('Detailed view of the application for deletion is working correct')
+
+            except BaseException as ex:
+                logging.error(ex)
+
+            # Duplicate unit
+            try:
+                duplicate_tab = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/ApplicationsForDropDuplicate"]')))
+                try:
+                    duplicate_tab.click()
+                except BaseException as ex:
+                    logging.error(f'List item "Дубли данных" - working incorrect. {ex}')
+                else:
+                    logging.info('List item "Дубли данных" - working correctly')
+
+                try:
+                    choose_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[@href="/Applicant/ApplicationsForDropDuplicate/ViewDetails/1"]')))
+                    choose_company.click()
+                except BaseException as ex:
+                    logging.error(f'Extended view of duplicate data for chosen company working incorrect. {ex}')
+                else:
+                    logging.info(f'Extended view of duplicate data for chosen company working correctly')
+
+                try:
+                    driver.execute_script('javascript:submitWorkersCsvFileForm();')
+                    for check_file in os.listdir(stuff_path):
+                        if check_file in 'Applications.csv':
+                            logging.warning(
+                                f'Must be updated button "Выгрузка сотрудников" or type of file: "{check_file}"')
+                except BaseException as ex:
+                    logging.error(f'Button "Выгрузка сотрудников" in list item "Заявки" -> '
+                                  f'tab "Дубли данных" - working incorrect. {ex}')
+                else:
+                    logging.info('Button "Выгрузка сотрудников" in list item "Заявки" -> '
+                                 'tab "Дубли данных" - working correctly')
+
+                try:
+                    driver.execute_script('javascript:submitDownloadVehicleCsvFileForm();')
+                    for check_file in os.listdir(stuff_path):
+                        if check_file in 'Applications.csv':
+                            logging.warning(f'Must be updated button "Выгрузка ТC" or type of file: "{check_file}"')
+                except BaseException as ex:
+                    logging.error(f'Button "Выгрузка ТC" in list item "Заявки" -> '
+                                  f'tab "Дубли данных" - working incorrect. {ex}')
+                else:
+                    logging.info('Button "Выгрузка ТC" in list item "Заявки" -> '
+                                 'tab "Дубли данных" - working correctly')
+            except BaseException as ex:
+                logging.error(ex)
+
+            # Worker positions
+            try:
+                worker_position_tab = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/ApplicationWorkerPositions"]')))
+                try:
+                    worker_position_tab.click()
+                except BaseException as ex:
+                    logging.error(f'List item "Должности" - working incorrect. {ex}')
+                else:
+                    logging.info('List item "Должности" - working correct')
+
+                try:
+                    create_position = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[@href="/Applicant/ApplicationWorkerPositions/Create"]')))
+                    create_position.click()
+                except BaseException as ex:
+                    logging.error(f'Button "Создать" from list item "Должности" - working incorrect. {ex}')
+                else:
+                    logging.info('Button "Создать" from list item "Должности" - working correct')
+
+                try:
+                    choose_position = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'position-values-button')))
+                    choose_position.click()
+                except BaseException as ex:
+                    logging.error(f'Button "Выбрать должность" from list item "Должности" - working incorrect. {ex}')
+                else:
+                    logging.info('Button "Выбрать должность" from list item "Должности" - working correct')
+
+                try:
+                    page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[text()="5"]')))
+                    page_number.click()
+                except BaseException as ex:
+                    logging.error(f'Pagination number work incorrect. {ex}')
+                else:
+                    logging.info('Pagination number work correctly')
+
+                time.sleep(1)
+
+                try:
+                    prev_page = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[text()="Пред."]')))
+                    prev_page.click()
+                except BaseException as ex:
+                    logging.error(f'Pagination word "Пред." working incorrect. {ex}')
+                else:
+                    logging.info(f'Pagination word "Пред." working correct')
+
+                time.sleep(1)
+
+                try:
+                    prev_page = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[text()="След."]')))
+                    prev_page.click()
+                except BaseException as ex:
+                    logging.error(f'Pagination word "След." working incorrect. {ex}')
+                else:
+                    logging.info(f'Pagination word "След." working correct')
+
+                time.sleep(1)
+
+                WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[text()="1"]'))).click()
+
+                try:
+                    try_position = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//label[text()="Автоклавщик"]')))
+                    try_position.click()
+
+                    submit_position = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'position-values-check')))
+                    submit_position.click()
+                except BaseException as ex:
+                    logging.error(f'Position don\'t add. Something wrong, may be with position\'s list. {ex}')
+                else:
+                    logging.info('Position add successful')
+
+                try:
+                    add_comment = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'Comment')))
+                    add_comment.send_keys('Hello, there!')
+                except BaseException as ex:
+                    logging.error(f'Comment don\'t added. {ex}')
+                else:
+                    logging.info('Comment added successful')
+
+                try:
+                    add_position = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//input[@value="Создать"]')))
+                    add_position.click()
+                except BaseException as ex:
+                    logging.error(f'Position don\'t created. {ex}')
+                else:
+                    logging.info('Position created successful')
+            except BaseException as ex:
+                logging.error(ex)
         except BaseException as ex:
             logging.error('Something goes wrong during testing '
                           '"Заявки". May be one or more element not found or been deprecated.')
@@ -861,7 +1138,6 @@ def check_data(url):
                   '"Заявки". May be one or more element not found or been deprecated.')
             logging.error(ex)
         else:
-            logging.info('Dropdown "Заявки" and all of elements in it - working correctly')
             logging.info('Testing "Заявки" - has finished!')
             print('[SUCCESS]: Testing "Заявки" - has finished!\n')
 
