@@ -1,2 +1,2 @@
-Automation test UI elements of projects
-----------------------------------------
+Automation test UI elements
+---------------------------
