@@ -12,7 +12,8 @@ from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-from test_dataset import filter_organization, filter_name, filter_birth, filter_position, filter_datepick
+from test_dataset import filter_organization, filter_name, filter_birth, filter_position, filter_datepick, \
+    owners_company_vehicle
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -1140,6 +1141,443 @@ def check_data(url):
         else:
             logging.info('Testing "Заявки" - has finished!')
             print('[SUCCESS]: Testing "Заявки" - has finished!\n')
+
+        # Dict
+        logging.info('Testing "Справочники" - has begun...')
+        print('[INFO]: Testing "Справочники" - has begun...')
+        try:
+            dict_tab = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, '//a[@href="#applicantDictWrap"]')))
+            dict_tab.click()
+
+            try:
+                sub_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/SubCompanies"]')))
+                sub_company.click()
+            except BaseException as ex:
+                logging.error(f'List item "Субподрядчики" working incorrect. {ex}')
+            else:
+                logging.info('List item "Субподрядчики" working correctly')
+
+            try:
+                page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="?page=2&MainCompanyId=1&IsActual=True"]')))
+                page_number.click()
+            except BaseException as ex:
+                logging.error(f'Pagination\'s number working incorrect.{ex}')
+            else:
+                logging.info('Pagination\'s number working correctly')
+
+            try:
+                prev_btn = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[text()="Пред."]')))
+                prev_btn.click()
+            except BaseException as ex:
+                logging.error(f'Pagination\'s button "Пред." working incorrect.{ex}')
+            else:
+                logging.info('Pagination\'s button "Пред." working correctly')
+
+            try:
+                prev_btn = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[text()="След."]')))
+                prev_btn.click()
+            except BaseException as ex:
+                logging.error(f'Pagination\'s button "След." working incorrect.{ex}')
+            else:
+                logging.info('Pagination\'s button "След." working correctly')
+
+            try:
+                not_actual = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//div[@isactual="false"]')))
+                not_actual.click()
+            except BaseException as ex:
+                logging.error(f'Tab "Не действующие" in list item "Субподрядчики"- working incorrect. {ex}')
+            else:
+                logging.info('Tab "Не действующие" in list item "Субподрядчики"- working correctly')
+
+            try:
+                download_sub_company = WebDriverWait(driver, timeout).until(EC. element_to_be_clickable(
+                    (By.ID, 'btnDownloadCsvFile')))
+                download_sub_company.click()
+            except BaseException as ex:
+                logging.error(f'Button "Excel" in list item "Субподрядчики" - working incorrect. {ex}')
+            else:
+                logging.info('Button "Excel" in list item "Субподрядчики" - working correctly')
+
+            for check_file in os.listdir(stuff_path):
+                if check_file in 'Субподрядчики.csv':
+                    logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
+
+            try:
+                actual = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//div[@isactual="true"]')))
+                actual.click()
+            except BaseException as ex:
+                logging.error(f'Tab "Действующие" in list item "Субподрядчики"- working incorrect. {ex}')
+            else:
+                logging.info('Tab "Действующие" in list item "Субподрядчики"- working correctly')
+
+            try:
+                download_sub_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnDownloadCsvFile')))
+                download_sub_company.click()
+            except BaseException as ex:
+                logging.error(f'Button "Excel" in list item "Субподрядчики" - working incorrect. {ex}')
+            else:
+                logging.info('Button "Excel" in list item "Субподрядчики" - working correctly')
+
+            for check_file in os.listdir(stuff_path):
+                if check_file in 'Субподрядчики.csv':
+                    logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
+
+            try:
+                create_sub_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/SubCompanies/Create"]')))
+                create_sub_company.click()
+            except BaseException as ex:
+                logging.error(f'Button "Создать" working incorrect. {ex}')
+            else:
+                logging.info('Button "Создать" working correctly')
+
+            try:
+                enter_sub_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'party-input')))
+                enter_sub_company.send_keys(owners_company_vehicle)
+                time.sleep(1)
+                change_sub_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, """//span[text()='ОАО "АБЗ-1"']""")))
+                time.sleep(1)
+                change_sub_company.click()
+            except BaseException as ex:
+                logging.error(f'Input "Организация или ИП" working incorrect. {ex}')
+            else:
+                logging.info('Input "Организация или ИП" working correctly')
+
+            try:
+                submit_create = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//input[@type="submit"]')))
+                submit_create.click()
+                time.sleep(1)
+                error_valid = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//span[@data-valmsg-for="INN"]')))
+                if error_valid:
+                    back_sub_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[@href="/Applicant/SubCompanies"]')))
+                    back_sub_company.click()
+            except BaseException as ex:
+                logging.error(f'Sub-company don\'t created. {ex}')
+            else:
+                logging.info('Sub-company created successfully')
+        except BaseException as ex:
+            logging.error('Something goes wrong during testing '
+                          '"Справочники". May be one or more element not found or been deprecated.')
+            print('[ERROR]: Something goes wrong during testing '
+                  '"Справочники". May be one or more element not found or been deprecated.')
+            logging.error(ex)
+        else:
+            logging.info('Testing "Справочники" - has finished!')
+            print('[SUCCESS]: Testing "Справочники" - has finished!\n')
+
+        # Reports
+        logging.info('Testing "Отчёты" - has begun...')
+        print('[INFO]: Testing "Отчёты" - has begun...')
+        try:
+            reports_tab = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, '//a[@href="#applicantReportsWrap"]')))
+            reports_tab.click()
+
+            # Expired docs
+            try:
+                reports_tab = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/ExpiredDocs"]')))
+                reports_tab.click()
+            except BaseException as ex:
+                logging.error(f'List item "Истекающие документы" working incorrect. {ex}')
+            else:
+                logging.info('List item "Истекающие документы" working correctly')
+
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+
+            try:
+                page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[@href="?page=2&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
+                page_number.click()
+            except BaseException as ex:
+                logging.error(f'Pagination\'s number working incorrect.{ex}')
+            else:
+                logging.info('Pagination\'s number working correctly')
+
+            try:
+                prev_btn = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[text()="Пред."]')))
+                prev_btn.click()
+            except BaseException as ex:
+                logging.error(f'Pagination\'s button "Пред." working incorrect.{ex}')
+            else:
+                logging.info('Pagination\'s button "Пред." working correctly')
+
+            try:
+                prev_btn = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[text()="След."]')))
+                prev_btn.click()
+            except BaseException as ex:
+                logging.error(f'Pagination\'s button "След." working incorrect.{ex}')
+            else:
+                logging.info('Pagination\'s button "След." working correctly')
+
+            try:
+                download_sub_company = WebDriverWait(driver, timeout).until(EC. element_to_be_clickable(
+                    (By.ID, 'btnDownloadCsvFile')))
+                download_sub_company.click()
+            except BaseException as ex:
+                logging.error(f'Button "Excel" in list item "Истекающие документы" - working incorrect. {ex}')
+            else:
+                logging.info('Button "Excel" in list item "Истекающие документы" - working correctly')
+
+            for check_file in os.listdir(stuff_path):
+                if check_file in 'ExpiredDocs.csv':
+                    logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
+
+            # Filter test
+            open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                (By.ID, 'btnFilterDesktop')))
+            open_filter.click()
+
+            try:
+                # Filter type
+                enter_selector = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//button[@data-id="Type"]')))
+                enter_selector.click()
+                change_type = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//input[@type="text"]')))
+                change_type.send_keys('Сотрудник', Keys.ENTER)
+
+                submit_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//input[@value="Применить"]')))
+                submit_filter.click()
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                table_req = soup.find('table', class_="table table-hover table-striped")
+                rows = table_req.find_all('tr')
+                cells = [row.find_all('td') for row in rows]
+                units = list()
+                for cell in cells:
+                    count = 0
+                    for check_cell in cell:
+                        count += 1
+                        if count == 5:
+                            res = check_cell.text.strip().split(' ')
+                            for check_res in res:
+                                units.append(check_res)
+                            count = 0
+                error = 0
+                for check_unit in units:
+                    if check_unit != 'Сотрудник':
+                        error += 1
+                if error >= 1:
+                    logging.error('"Тип" filter working incorrect')
+                else:
+                    logging.info('"Тип" filter working correct')
+
+                reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.CLASS_NAME, 'a-clear')))
+                reset_filter.click()
+
+                driver.execute_script('openFilterBlock(this);')
+
+                # Filter name
+                enter_name = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'Name')))
+                enter_name.send_keys('Карманов Марсель Феликсович', Keys.ENTER)
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                table_req = soup.find('table', class_="table table-hover table-striped")
+                rows = table_req.find_all('tr')
+                cells = [row.find_all('td') for row in rows]
+                units = list()
+                for cell in cells:
+                    count = 0
+                    for check_cell in cell:
+                        count += 1
+                        if count == 4:
+                            res = check_cell.text.strip().split('</td>')
+                            for check_res in res:
+                                units.append(check_res)
+                            count = 0
+                clear_units = [j for j in units if j != 'Не действителен']
+                error = 0
+                for check_unit in clear_units:
+                    if 'Карманов Марсель Феликсович' not in check_unit:
+                        error += 1
+                if error >= 1:
+                    logging.error('"Наименование" filter working incorrect')
+                else:
+                    logging.info('"Наименование" filter working correct')
+
+                reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.CLASS_NAME, 'a-clear')))
+                reset_filter.click()
+
+                driver.execute_script('openFilterBlock(this);')
+
+                # Filter doc
+                enter_doc = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'DocName')))
+                enter_doc.send_keys('Трудовой договор', Keys.ENTER)
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                table_req = soup.find('table', class_="table table-hover table-striped")
+                rows = table_req.find_all('tr')
+                cells = [row.find_all('td') for row in rows]
+                units = list()
+                for cell in cells:
+                    count = 0
+                    for check_cell in cell:
+                        count += 1
+                        if count == 6:
+                            res = check_cell.text.strip().split('</td>')
+                            for check_res in res:
+                                units.append(check_res)
+                            count = 0
+                error = 0
+                for check_unit in units:
+                    if 'Трудовой договор' not in check_unit:
+                        error += 1
+                if error >= 1:
+                    logging.error('"Документ" filter working incorrect')
+                else:
+                    logging.info('"Документ" filter working correct')
+
+                reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.CLASS_NAME, 'a-clear')))
+                reset_filter.click()
+
+                driver.execute_script('openFilterBlock(this);')
+
+                # Filter date
+                date_from = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'dateFrom')))
+                date_from.send_keys('28.02.2022')
+
+                time.sleep(1)
+
+                date_to = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'dateTo')))
+                date_to.send_keys('28.02.2022')
+                submit_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//input[@value="Применить"]')))
+                submit_filter.click()
+
+                soup = BeautifulSoup(driver.page_source, 'html.parser')
+                table_req = soup.find('table', class_="table table-hover table-striped")
+                rows = table_req.find_all('tr')
+                cells = [row.find_all('td') for row in rows]
+                units = list()
+                for cell in cells:
+                    count = 0
+                    for check_cell in cell:
+                        count += 1
+                        if count == 7:
+                            res = check_cell.text.strip().split('</td>')
+                            for check_res in res:
+                                units.append(check_res)
+                            count = 0
+                error = 0
+                for check_unit in units:
+                    if '28.02.2022' not in check_unit:
+                        error += 1
+                if error >= 1:
+                    logging.error('"Дата окончания" filter working incorrect')
+                else:
+                    logging.info('"Дата окончания" filter working correct')
+
+                reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.CLASS_NAME, 'a-clear')))
+                reset_filter.click()
+            except BaseException as ex:
+                logging.error(f'Filter working incorrect. {ex}')
+            else:
+                logging.info('Filter working correctly')
+
+            try:
+                link_doc = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/WorkerDocuments?workerId=887"]')))
+                link_doc.click()
+                time.sleep(5)
+            except BaseException as ex:
+                logging.error(f'Link to document working incorrect. {ex}')
+            else:
+                logging.info('Link to document working correctly')
+
+            try:
+                archive = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="#notActualDocs"]')))
+                archive.click()
+            except BaseException as ex:
+                logging.error(f'Tab "Архив" working incorrect. {ex}')
+            else:
+                logging.info('Tab "Архив" working correctly')
+
+            try:
+                delete_archive_doc = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/WorkerDocuments/Delete/1254?appid=0"]')))
+                delete_archive_doc.click()
+
+                confirm_delete = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//input[@value="Удалить"]')))
+                confirm_delete.click()
+            except BaseException as ex:
+                logging.error(f'Delete archive document working incorrect. '
+                              f'Not found document, or document has been delete earlier {ex}')
+            else:
+                logging.info('Delete archive document working correctly')
+
+            try:
+                actual_doc = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="#actualDocs"]')))
+                actual_doc.click()
+            except BaseException as ex:
+                logging.error(f'Tab "Актуальные документы" working incorrect. {ex}')
+            else:
+                logging.info('Tab "Актуальные документы" working correctly')
+
+            try:
+                edit_doc = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/WorkerDocuments/Edit/1258?appid=0"]')))
+                edit_doc.click()
+
+                edit_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'Document_Number')))
+                edit_number.send_keys('123456')
+
+                submit_btn = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//input[@value="Сохранить"]')))
+                submit_btn.click()
+            except BaseException as ex:
+                logging.error(f'Edit actual document working incorrect. '
+                              f'Not found document, or document has been delete. {ex}')
+            else:
+                logging.info('Edit actual document working correctly')
+
+            try:
+                delete_actual_doc = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/WorkerDocuments/Delete/1258?appid=0"]')))
+                delete_actual_doc.click()
+
+                confirm_delete = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//input[@value="Удалить"]')))
+                confirm_delete.click()
+            except BaseException as ex:
+                logging.error(f'Delete actual document working incorrect. '
+                              f'Not found document, or document has been delete. {ex}')
+            else:
+                logging.info('Delete actual document working correctly')
+        except BaseException as ex:
+            logging.error('Something goes wrong during testing '
+                          '"Отчёты". May be one or more element not found or been deprecated.')
+            print('[ERROR]: Something goes wrong during testing '
+                  '"Отчёты". May be one or more element not found or been deprecated.')
+            logging.error(ex)
+        else:
+            logging.info('Testing "Отчёты" - has finished!')
+            print('[SUCCESS]: Testing "Отчёты" - has finished!\n')
 
     except BaseException as ex:
         print(f'{ex} Something goes wrong. See the log file.')
