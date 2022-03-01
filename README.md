@@ -1,7 +1,8 @@
-Automation test UI elements
+#Automation test UI elements
 ---------------------------
----------------------------
-### You should create .env file, and filled him like:
+### Environment
+- You should create .env file in main directory, and fill it like:
 ```python
     LOGIN = your_login
     PASSWD = your_password 
+```
