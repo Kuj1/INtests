@@ -40,7 +40,7 @@ resource_path = os.path.join(os.getcwd(), 'resource')
 doc_path = os.path.join(resource_path, '1.pdf')
 
 # Constants
-URL = 'https://demo.i-propusk.ru'
+URL = 'https://demo1.i-propusk.ru/'
 LOGIN = os.getenv('LOGIN')
 PASSWD = os.getenv('PASSWD')
 
@@ -60,8 +60,8 @@ driver = enable_download_in_headless_chrome(driver, stuff_path)
 
 # Other var
 timeout = 10
-count_workers = 5
-count_vehicle = 5
+count_workers = 20
+count_vehicle = 11
 
 
 def create_vehicle():
@@ -127,7 +127,7 @@ def create_worker():
     f_name = random.choice(first_name)
     m_name = middle_name()
     birthday = random_date('1.1.1970', '1.1.2003', random.random())
-    work_position = random.choice(position)
+    work_position = 'Охранник - водитель ТРЭКОЛа'
 
     enter_second_name = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
         (By.ID, 'Worker_LastName')))
@@ -140,6 +140,10 @@ def create_worker():
     enter_middle_name = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
         (By.ID, 'Worker_MiddleName')))
     enter_middle_name.send_keys(m_name)
+
+    birth_place = WebDriverWait(driver,timeout).until(EC.element_to_be_clickable(
+        (By.ID, 'Worker_Birthplace')))
+    birth_place.send_keys('г. Н-ск')
 
     birth_date = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
         (By.ID, 'Worker_Birthday')))
@@ -191,15 +195,15 @@ def check_data(url, workers=None, vehicles=None):
         WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
             (By.CLASS_NAME, 'swal2-confirm'))).click()
 
-        WebDriverWait(driver, timeout).until((EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="/Applicant/Workers"]')))).click()
+        # WebDriverWait(driver, timeout).until((EC.element_to_be_clickable(
+        #     (By.XPATH, '//a[@href="/Applicant/Workers"]')))).click()
 
-        print('[INFO]: Workers created:')
-        while workers != 0:
-            WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                (By.XPATH, '//a[@href="/Applicant/Workers/Create"]'))).click()
-            create_worker()
-            workers -= 1
+        # print('[INFO]: Workers created:')
+        # while workers != 0:
+        #     WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+        #         (By.XPATH, '//a[@href="/Applicant/Workers/Create"]'))).click()
+        #     create_worker()
+        #     workers -= 1
 
         WebDriverWait(driver, timeout).until((EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="/Applicant/Vehicles"]')))).click()

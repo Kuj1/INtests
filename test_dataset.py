@@ -90,7 +90,7 @@ name_vehicle = [
 ]
 
 type_vehicle = [
-    'Грузовой', 'Категория D (автобусы)', 'Категория В (легковые автомобили)',
+    'Категория D (автобусы)', 'Категория В (легковые автомобили)',
     'Жилой вагон', 'Категория Е (легковые и грузовые прицепы (полуприцепы))'
 ]
 
@@ -116,15 +116,21 @@ def vin_vehicle():
 
 exp_year_vehicle = random_date('1.1.1970', '1.1.2003', random.random())
 capacity_vehicle = random.randint(100, 300)
-owners_company_number = '7804016807'
-owners_company_name = 'ОАО "АБЗ-1"'
+owners_company_number = '890501001'
+owners_company_name = 'ООО "ЧОО "ИНТЕЛЛЕКТ"'
 contract_number = '1000343123'
 date_contract = '28.03.2022'
 
 # Workers filter dataset
 filter_organization = 'АО "ПРЕМЬЕРСТРОЙ"'
-filter_name = 'new'
+filter_name = 'New'
 filter_position = 'Тунеядец'
+filter_number_invites_worker = '0100000336C'
+filter_number_invites_vehicle = '0100000035A'
+filter_number_invites_value = '0100000001T'
+filter_number_application_worker = '527'
+filter_number_application_vehicle = '403'
+filter_number_application_value = '35'
 filter_birth = '01.01.1961'
 
 # Vehicles filter dataset
