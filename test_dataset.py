@@ -123,15 +123,19 @@ date_contract = '28.03.2022'
 
 # Workers filter dataset
 filter_organization = 'АО "ПРЕМЬЕРСТРОЙ"'
-filter_name = 'New'
+filter_name_inv = 'New'
+filter_name_pass = 'Monster'
 filter_position = 'Тунеядец'
 filter_number_invites_worker = '0100000336C'
+filter_number_pass_worker = '2000336C'
 filter_number_invites_vehicle = '0100000035A'
 filter_number_invites_value = '0100000001T'
 filter_number_application_worker = '527'
 filter_number_application_vehicle = '403'
 filter_number_application_value = '35'
-filter_birth = '01.01.1961'
+filter_birth = '03.02.2004'
+
+filter_end_date_pass = '28.02.2022'
 
 # Vehicles filter dataset
 filter_datepick = '03.03.2020'
