@@ -89,7 +89,7 @@ def download_doc():
         not_actual_inv_download.click()
         time.sleep(1)
     except BaseException as ex:
-        logging.error(f'Button "Excel"'
+        logging.error(f'Button "Excel" '
                       f'working incorrect. {ex}')
     else:
         logging.info('Button "Excel" working correctly')
@@ -1281,6 +1281,7 @@ def check_data(url):
                     for check_file in os.listdir(stuff_path):
                         if check_file in 'Applications.csv':
                             logging.warning(f'Must be updated button "Выгрузка ТC" or type of file: "{check_file}"')
+                    os.remove(os.path.join(stuff_path, 'Applications.csv'))
                 except BaseException as ex:
                     logging.error(f'Button "Выгрузка ТC" in list item "Заявки" -> '
                                   f'tab "Дубли данных" - working incorrect. {ex}')
@@ -1291,8 +1292,6 @@ def check_data(url):
                 logging.error(f'List item "Дубли данных" in dropdown "Заявки" - working incorrect. {ex}')
             else:
                 logging.info('List item "Дубли данных" in dropdown "Заявки" - working correctly')
-            finally:
-                os.remove(os.path.join(stuff_path, 'Applications.csv'))
 
             # Worker positions
             try:
@@ -1810,6 +1809,8 @@ def check_data(url):
         else:
             logging.info('Testing "Отчёты" - has finished!')
             print('[SUCCESS]: Testing "Отчёты" - has finished!\n')
+        finally:
+            os.remove(os.path.join(stuff_path, 'ExpiredDocs.csv'))
 
     except BaseException as ex:
         print(f'{ex} Something goes wrong. See the log file.')
@@ -1817,6 +1818,7 @@ def check_data(url):
     finally:
         driver.close()
         driver.quit()
+        os.rmdir(stuff_path)
 
 
 def main():

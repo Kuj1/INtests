@@ -145,3 +145,8 @@ filter_number_pass_vehicle = '1000031A'
 vehicle_id = '1'
 filter_type_vehicle_app = 'Категория D (автобусы)'
 filter_name_vehicle_app = 'КПП-1'
+
+# Curator
+main_company = 'АО "ПРЕМЬЕРСТРОЙ"'
+not_main_company = ''
+type_app = 'Сотрудники'
