@@ -73,7 +73,7 @@ driver = enable_download_in_headless_chrome(driver, stuff_path)
 timeout = 10
 
 
-def filter_for_curator(grand_contract=None, date_app=None, type_application=None):
+def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
     # Filter grand contact
     if grand_contract:
         enter_grand_contract = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
@@ -302,8 +302,8 @@ def check_data(url):
 
                 logging.warning('Other filter input\'s should tested manually')
 
-                filter_for_curator(grand_contract=main_company, type_application='Сотрудники')
-                filter_for_curator(type_application='Транспорт', date_app=True)
+                filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
+                filter_for_apps(type_application='Транспорт', date_app=True)
             except BaseException as ex:
                 logging.error(f'List item "Заявки" in dropdown "Заявки" - working incorrect. {ex}')
             else:
