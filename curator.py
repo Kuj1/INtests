@@ -1,8 +1,6 @@
 import os
-# import random
 import time
 import logging
-import re
 
 from selenium import webdriver
 from selenium.webdriver import Keys
@@ -13,10 +11,9 @@ from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-from test_dataset import main_company, type_app
+from test_dataset import main_company
 
-from applicant import download_doc, pagination_test, filter_for_units, filter_number_docs, filter_for_units_app, \
-    filter_for_deletion, input_elem
+from applicant import download_doc, pagination_test, input_elem
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -109,8 +106,6 @@ def filter_for_curator(grand_contract=None, date_app=None, type_application=None
         driver.execute_script('resetFilter();')
         driver.execute_script('openFilterBlock(this);')
 
-    # Filter date
-
 
 def pagination_test(path_to_number):
     """
@@ -201,7 +196,7 @@ def check_data(url):
                 (By.XPATH, '//a[@href="#curatorApplications"]')))
             enter_app.click()
 
-            # Applications (list item)
+            # Applications
             try:
                 click_app_li = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
                     (By.XPATH, '//a[@href="/Curator/Applications"]')))
@@ -224,8 +219,9 @@ def check_data(url):
                     (By.ID, 'btnFilterMobile')))
                 open_filter.click()
 
-                filter_for_curator(grand_contract=main_company)
+                logging.warning('Other filter input\'s should tested manually')
 
+                filter_for_curator(grand_contract=main_company)
             except BaseException as ex:
                 logging.error(f'List item "Заявки" in dropdown "Заявки" - working incorrect. {ex}')
             else:
@@ -250,6 +246,7 @@ def check_data(url):
                 (By.XPATH, '//a[@href="#curatorDictWrap"]')))
             dict_tab.click()
 
+            # Sub companies
             try:
                 sub_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
                     (By.XPATH, '//a[@href="/Curator/SubCompanies"]')))
