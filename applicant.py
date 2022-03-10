@@ -64,7 +64,7 @@ PASSWD = os.getenv('PASSWD')
 options = webdriver.ChromeOptions()
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_argument('start-maximized')
-options.add_argument('--headless')
+# options.add_argument('--headless')
 options.add_argument('--enable-javascript')
 download_pref = {'download.default_directory': stuff_path, "download.prompt_for_download": False}
 options.add_experimental_option("prefs", download_pref)
@@ -112,10 +112,6 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
         driver.execute_script('openFilterBlock(this);')
 
     # Filter sub companies
-    logging.warning('"Субподрядчик" should tested manually')
-    logging.warning('"Статус" should tested manually')
-    logging.warning('"По роли" should tested manually')
-    logging.warning('"Согласующий" should tested manually')
     # Filter type app
     if type_application:
         type_request = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
@@ -163,6 +159,17 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
                 logging.error('Method "Транспорт" of filter "Вид заявки" working incorrect')
             else:
                 logging.info('Method "Транспорт" of filter "Вид заявки" working correctly')
+
+        elif type_application == 'ТМЦ':
+            error = 0
+            for check_workers in unit:
+                if check_workers != 'fa-camera':
+                    error += 1
+                    break
+            if error >= 1:
+                logging.error('Method "ТМЦ" of filter "Вид заявки" working incorrect')
+            else:
+                logging.info('Method "ТМЦ" of filter "Вид заявки" working correctly')
 
         driver.execute_script('resetFilter();')
         driver.execute_script('openFilterBlock(this);')
@@ -1201,14 +1208,49 @@ def check_data(url):
         # Applications
         logging.info('Testing "Заявки" - has begun...')
         print('[INFO]: Testing "Заявки" - has begun...')
-
-        filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
-        filter_for_apps(type_application='Транспорт', date_app=True)
-
         try:
             app_wrap = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
                 (By.XPATH, '//a[@href="#applicantApplications"]')))
             app_wrap.click()
+
+            # Applications
+            try:
+                click_app_li = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/Applicant/Applications"]')))
+                click_app_li.click()
+
+                download_doc()
+                for check_file in os.listdir(stuff_path):
+                    if check_file in 'Applications.csv':
+                        logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
+
+                # Pagination test
+                page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH,
+                     '//a[@href="?page=2&IsActual=True"]')))
+                if page_number:
+                    pagination_test(page_number)
+
+                # Filter test
+                open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterMobile')))
+                open_filter.click()
+
+                logging.warning('Other filter input\'s should tested manually')
+
+                filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
+                filter_for_apps(type_application='Транспорт', date_app=True)
+                filter_for_apps(type_application='ТМЦ')
+                logging.warning('"Субподрядчик" should tested manually')
+                logging.warning('"Статус" should tested manually')
+                logging.warning('"По роли" should tested manually')
+                logging.warning('"Согласующий" should tested manually')
+            except BaseException as ex:
+                logging.error(f'List item "Заявки" in dropdown "Заявки" - working incorrect. {ex}')
+            else:
+                logging.info('List item "Заявки" in dropdown "Заявки" - working correctly')
+            finally:
+                os.remove(os.path.join(stuff_path, 'Applications.csv'))
 
             # Workers
             try:

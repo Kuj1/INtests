@@ -107,10 +107,6 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
         driver.execute_script('openFilterBlock(this);')
 
     # Filter sub companies
-    logging.warning('"Субподрядчик" should tested manually')
-    logging.warning('"Статус" should tested manually')
-    logging.warning('"По роли" should tested manually')
-    logging.warning('"Согласующий" should tested manually')
     # Filter type app
     if type_application:
         type_request = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
@@ -158,6 +154,17 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
                 logging.error('Method "Транспорт" of filter "Вид заявки" working incorrect')
             else:
                 logging.info('Method "Транспорт" of filter "Вид заявки" working correctly')
+
+        elif type_application == 'ТМЦ':
+            error = 0
+            for check_workers in unit:
+                if check_workers != 'fa-camera':
+                    error += 1
+                    break
+            if error >= 1:
+                logging.error('Method "ТМЦ" of filter "Вид заявки" working incorrect')
+            else:
+                logging.info('Method "ТМЦ" of filter "Вид заявки" working correctly')
 
         driver.execute_script('resetFilter();')
         driver.execute_script('openFilterBlock(this);')
@@ -304,6 +311,11 @@ def check_data(url):
 
                 filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
                 filter_for_apps(type_application='Транспорт', date_app=True)
+                filter_for_apps(type_application='ТМЦ')
+                logging.warning('"Субподрядчик" should tested manually')
+                logging.warning('"Статус" should tested manually')
+                logging.warning('"По роли" should tested manually')
+                logging.warning('"Согласующий" should tested manually')
             except BaseException as ex:
                 logging.error(f'List item "Заявки" in dropdown "Заявки" - working incorrect. {ex}')
             else:
