@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-from test_dataset import main_company
+from test_dataset import main_company, date_from_app, date_to_app
 
 from applicant import download_doc, pagination_test, input_elem
 
@@ -102,6 +102,87 @@ def filter_for_curator(grand_contract=None, date_app=None, type_application=None
             logging.info('"Генподрядчик" filter working correct')
         else:
             logging.error('"Генподрядчик" filter working incorrect')
+
+        driver.execute_script('resetFilter();')
+        driver.execute_script('openFilterBlock(this);')
+
+    # Filter sub companies
+    logging.warning('"Субподрядчик" should tested manually')
+    logging.warning('"Статус" should tested manually')
+    logging.warning('"По роли" should tested manually')
+    logging.warning('"Согласующий" should tested manually')
+    # Filter type app
+    if type_application:
+        type_request = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//button[@data-id="appType"]')))
+        type_request.click()
+
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, './/div/input[@type="text"]'))).send_keys(type_application, Keys.ENTER)
+
+        filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]')))
+        filter_enter.click()
+
+        soup_req = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup_req.find('table', class_="application-table table table-hover table-striped")
+        info_delete = [i['class'] for i in table_req.find_all('i', class_='fa')]
+        unit = list()
+        for check_class in info_delete:
+            for check_right_icon in check_class:
+                if check_right_icon != 'fa' and check_right_icon != 'fa-lock' and check_right_icon != 'fa-check'\
+                        and check_right_icon != 'float-right' \
+                        and check_right_icon != 'm-r-15' \
+                        and check_right_icon != 'p-t-5' \
+                        and check_right_icon != 'fa-times':
+                    unit.append(check_right_icon)
+
+        if type_application == 'Сотрудники':
+            error = 0
+            for check_workers in unit:
+                if check_workers != 'fa-users':
+                    error += 1
+                    break
+            if error >= 1:
+                logging.error('Method "Сотрудники" of filter "Вид заявки" working incorrect')
+            else:
+                logging.info('Method "Сотрудники" of filter "Вид заявки" working correctly')
+
+        elif type_application == 'Транспорт':
+            error = 0
+            for check_workers in unit:
+                if check_workers != 'fa-car':
+                    error += 1
+                    break
+            if error >= 1:
+                logging.error('Method "Транспорт" of filter "Вид заявки" working incorrect')
+            else:
+                logging.info('Method "Транспорт" of filter "Вид заявки" working correctly')
+
+        driver.execute_script('resetFilter();')
+        driver.execute_script('openFilterBlock(this);')
+
+    # Filter date
+    if date_app:
+        filter_date_from = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'dateFrom')))
+        filter_date_from.send_keys(date_from_app)
+
+        filter_date_to = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'dateTo')))
+        filter_date_to.send_keys(date_to_app, Keys.ENTER)
+
+        filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]')))
+        filter_enter.click()
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="application-table table table-hover table-striped")
+        date = table_req.find_all('tr')[1].find_all('td')[-2].text.strip().split(' ')
+        if date_from_app == date[0]:
+            logging.info('"Дата подачи" filter working correct')
+        else:
+            logging.error('"Дата подачи" filter working correct')
 
         driver.execute_script('resetFilter();')
         driver.execute_script('openFilterBlock(this);')
@@ -221,7 +302,8 @@ def check_data(url):
 
                 logging.warning('Other filter input\'s should tested manually')
 
-                filter_for_curator(grand_contract=main_company)
+                filter_for_curator(grand_contract=main_company, type_application='Сотрудники')
+                filter_for_curator(type_application='Транспорт', date_app=True)
             except BaseException as ex:
                 logging.error(f'List item "Заявки" in dropdown "Заявки" - working incorrect. {ex}')
             else:
