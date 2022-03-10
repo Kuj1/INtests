@@ -13,7 +13,7 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
 from test_dataset import filter_end_date_pass, filter_number_application_vehicle_pass, filter_type_vehicle, \
-    filter_number_pass_vehicle
+    filter_number_pass_vehicle, main_company, date_from_app_v_s, date_to_app_v_s
 
 from applicant import download_doc, pagination_test, input_elem
 
@@ -73,6 +73,128 @@ driver = enable_download_in_headless_chrome(driver, stuff_path)
 
 # Other var
 timeout = 10
+
+
+def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
+    # Filter grand contact
+    if grand_contract:
+        enter_grand_contract = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'select2-MainCompany-container')))
+        enter_grand_contract.click()
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.CLASS_NAME, 'select2-search__field'))).send_keys(grand_contract)
+
+        filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]')))
+        filter_enter.click()
+
+        soup_req = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup_req.find('table', class_="table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        name_comp = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                if count == 0:
+                    res = check_cell.text.strip().split('</tr>')
+                    for check_res in res:
+                        name_comp.append(check_res)
+        if main_company in name_comp:
+            logging.info('"Генподрядчик" filter working correct')
+        else:
+            logging.error('"Генподрядчик" filter working incorrect')
+
+        driver.execute_script('resetFilter();')
+        driver.execute_script('openFilterBlock(this);')
+
+    # Filter sub companies
+    # Filter type app
+    if type_application:
+        type_request = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//button[@data-id="appType"]')))
+        type_request.click()
+
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, './/div/input[@type="text"]'))).send_keys(type_application, Keys.ENTER)
+
+        filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]')))
+        filter_enter.click()
+
+        soup_req = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup_req.find('table', class_="application-table table table-hover table-striped")
+        info_delete = [i['class'] for i in table_req.find_all('i', class_='fa')]
+        unit = list()
+        for check_class in info_delete:
+            for check_right_icon in check_class:
+                if check_right_icon != 'fa' and check_right_icon != 'fa-lock' and check_right_icon != 'fa-check'\
+                        and check_right_icon != 'float-right' \
+                        and check_right_icon != 'm-r-15' \
+                        and check_right_icon != 'p-t-5' \
+                        and check_right_icon != 'fa-times':
+                    unit.append(check_right_icon)
+
+        if type_application == 'Сотрудники':
+            error = 0
+            for check_workers in unit:
+                if check_workers != 'fa-users':
+                    error += 1
+                    break
+            if error >= 1:
+                logging.error('Method "Сотрудники" of filter "Вид заявки" working incorrect')
+            else:
+                logging.info('Method "Сотрудники" of filter "Вид заявки" working correctly')
+
+        elif type_application == 'Транспорт':
+            error = 0
+            for check_workers in unit:
+                if check_workers != 'fa-car':
+                    error += 1
+                    break
+            if error >= 1:
+                logging.error('Method "Транспорт" of filter "Вид заявки" working incorrect')
+            else:
+                logging.info('Method "Транспорт" of filter "Вид заявки" working correctly')
+
+        elif type_application == 'ТМЦ':
+            error = 0
+            for check_workers in unit:
+                if check_workers != 'fa-camera':
+                    error += 1
+                    break
+            if error >= 1:
+                logging.error('Method "ТМЦ" of filter "Вид заявки" working incorrect')
+            else:
+                logging.info('Method "ТМЦ" of filter "Вид заявки" working correctly')
+
+        driver.execute_script('resetFilter();')
+        driver.execute_script('openFilterBlock(this);')
+
+    # Filter date
+    if date_app:
+        filter_date_from = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'dateFrom')))
+        filter_date_from.send_keys(date_from_app_v_s)
+
+        filter_date_to = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'dateTo')))
+        filter_date_to.send_keys(date_to_app_v_s, Keys.ENTER)
+
+        filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]')))
+        filter_enter.click()
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="application-table table table-hover table-striped")
+        date = table_req.find_all('tr')[1].find_all('td')[-2].text.strip().split(' ')
+        if date_from_app_v_s == date[0]:
+            logging.info('"Дата подачи" filter working correct')
+        else:
+            logging.error('"Дата подачи" filter working correct')
+
+        driver.execute_script('resetFilter();')
+        driver.execute_script('openFilterBlock(this);')
 
 
 def filter_for_units(org=None, name=None, position=None, date_birth=None, type_vehicle=None, tab=False, link=False):
@@ -460,10 +582,6 @@ def check_data(url):
         WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
             (By.CLASS_NAME, 'swal2-confirm'))).click()
 
-        close_app_wrap = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, "//a[@href='#applicantWrap']")))
-        close_app_wrap.click()
-
         # Enter to vehicle security folder
         try:
             enter_v_c = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
@@ -549,6 +667,62 @@ def check_data(url):
             logging.info('Dropdown "Пропуска" and all of elements in it - working correctly')
             logging.info('Testing "Пропуска" - is finished!')
             print('[SUCCESS]: Testing "Пропуска" - is finished!\n')
+
+        # Applications
+        logging.info('Testing "Заявки" - has begun...')
+        print('[INFO]: Testing "Заявки" - has begun...')
+        try:
+            enter_app = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, '//a[@href="#transportsecurityApplications"]')))
+            enter_app.click()
+
+            # Applications
+            try:
+                click_app_li = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/TransportSecurity/Applications"]')))
+                click_app_li.click()
+
+                download_doc()
+                for check_file in os.listdir(stuff_path):
+                    if check_file in 'Applications.csv':
+                        logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
+
+                # Pagination test
+                page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH,
+                     '//a[@href="?page=2&IsActual=True"]')))
+                if page_number:
+                    pagination_test(page_number)
+
+                # Filter test
+                open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterMobile')))
+                open_filter.click()
+
+                logging.warning('Other filter input\'s should tested manually')
+
+                filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
+                filter_for_apps(type_application='Транспорт', date_app=True)
+                filter_for_apps(type_application='ТМЦ')
+                logging.warning('"Субподрядчик" should tested manually')
+                logging.warning('"Статус" should tested manually')
+                logging.warning('"По роли" should tested manually')
+                logging.warning('"Согласующий" should tested manually')
+            except BaseException as ex:
+                logging.error(f'List item "Заявки" in dropdown "Заявки" - working incorrect. {ex}')
+            else:
+                logging.info('List item "Заявки" in dropdown "Заявки" - working correctly')
+            finally:
+                os.remove(os.path.join(stuff_path, 'Applications.csv'))
+        except BaseException as ex:
+            logging.error('Something goes wrong during testing '
+                          '"Заявки". May be one or more element not found or been deprecated.')
+            print('[ERROR]: Something goes wrong during testing '
+                  '"Заявки". May be one or more element not found or been deprecated.')
+            logging.error(ex)
+        else:
+            logging.info('Testing "Заявки" - has finished!')
+            print('[SUCCESS]: Testing "Заявки" - has finished!\n')
     except BaseException as ex:
         print(f'{ex} Something goes wrong. See the log file.')
 
