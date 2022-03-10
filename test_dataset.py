@@ -149,5 +149,7 @@ filter_name_vehicle_app = 'КПП-1'
 # Curator
 main_company = 'АО "ПРЕМЬЕРСТРОЙ"'
 date_to_app = '25.02.2022'
+date_to_app_v_s = '2.03.2022'
 date_from_app = '24.02.2022'
+date_from_app_v_s = '01.03.2022'
 type_app = 'Сотрудники'
