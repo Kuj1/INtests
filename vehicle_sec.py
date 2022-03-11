@@ -13,7 +13,8 @@ from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
 from test_dataset import filter_end_date_pass, filter_number_application_vehicle_pass, filter_type_vehicle, \
-    filter_number_pass_vehicle, main_company, date_from_app_v_s, date_to_app_v_s
+    filter_number_pass_vehicle, main_company, date_from_app_v_s, date_to_app_v_s, filter_organization, filter_datepick, \
+    filter_type_vehicle_app, vehicle_id, filter_name_vehicle_app
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -59,7 +60,7 @@ PASSWD = os.getenv('PASSWD')
 options = webdriver.ChromeOptions()
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_argument('start-maximized')
-options.add_argument('--headless')
+# options.add_argument('--headless')
 options.add_argument('--enable-javascript')
 download_pref = {'download.default_directory': stuff_path, "download.prompt_for_download": False}
 options.add_experimental_option("prefs", download_pref)
@@ -509,6 +510,122 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         driver.execute_script('openFilterBlock(this);')
 
 
+def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_vehicle=None):
+    """
+    SPECIAL for units from tab application
+    :param birth_d: birth day date from app
+    :param type_vehicle: type of vehicle from app
+    :param id_vehicle: id of vehicle from app
+    :param name_vehicle: name of vehicle from app
+    :return:
+    """
+    # Filter date
+    filter_date_from = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+        (By.ID, 'dateFrom')))
+    filter_date_from.send_keys(birth_d)
+
+    filter_date_to = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+        (By.ID, 'dateTo')))
+    filter_date_to.send_keys(filter_end_date_pass, Keys.ENTER)
+
+    filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+        (By.XPATH, '//input[@value="Применить"]')))
+    filter_enter.click()
+
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    table_req = soup.find('table', class_="table-striped")
+    date_birthday = table_req.find(text=re.compile(f'{birth_d}')).text.strip()
+
+    if birth_d == date_birthday:
+        logging.info('"Дата выпуска" filter working correct')
+    else:
+        logging.error('"Дата выпуска" filter working correct')
+
+    driver.execute_script('resetFilter();')
+    driver.execute_script('openFilterBlock(this);')
+
+    # Filter type of vehicle
+    if type_vehicle:
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//button[@data-id="TypeId"]'))).click()
+        enter_type_vehicle = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.LINK_TEXT, type_vehicle)))
+        enter_type_vehicle.click()
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]'))).click()
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table-striped")
+        rows = table_req.find_all('strong')
+        cells = [row.find_all('span', {"title": re.compile(r'.*')}) for row in rows]
+        types = list()
+        for cell in cells:
+            for check_cell in cell:
+                res = check_cell.get('title').strip()
+                types.append(res)
+        error = 0
+        for check_type in types:
+            if type_vehicle == check_type:
+                continue
+            else:
+                error += 1
+        if error == 0:
+            logging.info('"Тип ТС" filter working correct')
+        elif error > 0:
+            logging.error('"Тип ТС" filter working incorrect')
+
+        driver.execute_script('resetFilter();')
+        driver.execute_script('openFilterBlock(this);')
+
+    # Filter id vehicle
+    if id_vehicle:
+        enter_id_vehicle = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'VehicleId')))
+        enter_id_vehicle.send_keys(id_vehicle)
+
+        filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]')))
+        filter_enter.click()
+
+        soup_req = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup_req.find('table', class_="table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        id_v = ''
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 1:
+                    res = check_cell.text.strip().split(' ')
+                    for check_res in res:
+                        id_v = ''.join(check_res)
+        if id_v == id_vehicle:
+            logging.info('"Код ТС" filter working correct')
+        else:
+            logging.error('"Код ТС" filter working incorrect')
+
+        driver.execute_script('resetFilter();')
+        driver.execute_script('openFilterBlock(this);')
+
+    # Filter name vehicle
+    if name_vehicle:
+        filter_change_name = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'Name')))
+        filter_change_name.send_keys(name_vehicle, Keys.ENTER)
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        cell = soup.find(string=re.compile(f'{name_vehicle}')).text.strip()
+
+        if name_vehicle in cell:
+            logging.info('"Марка" filter working correct')
+        else:
+            logging.error('"Марка" filter working incorrect')
+
+        driver.execute_script('resetFilter();')
+        driver.execute_script('openFilterBlock(this);')
+
+
 def pagination_test(path_to_number):
     """
     Pagination test
@@ -724,6 +841,44 @@ def check_data(url):
                 logging.info('List item "Заявки" in dropdown "Заявки" - working correctly')
             finally:
                 os.remove(os.path.join(stuff_path, 'Applications.csv'))
+
+            # Vehicles
+            try:
+                app_vehicles = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/TransportSecurity/Vehicles"]')))
+                try:
+                    app_vehicles.click()
+                except BaseException as ex:
+                    logging.error(f'List item "Транспорт" - working incorrect. {ex}')
+                else:
+                    logging.info('List item "Транспорт" - working correctly')
+
+                download_doc()
+
+                for check_file in os.listdir(stuff_path):
+                    if check_file in 'Vehicles.csv':
+                        logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
+
+                # Pagination test
+                page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=asc&IsActual=True"]')))
+                if page_number:
+                    pagination_test(page_number)
+
+                # Filter test
+                open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterDesktop')))
+                open_filter.click()
+                filter_for_units(org=filter_organization, link=True)
+                filter_for_units_app(birth_d=filter_datepick,
+                                     type_vehicle=filter_type_vehicle_app,
+                                     id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app)
+            except BaseException as ex:
+                logging.error(f'List item "Транспорт" in dropdown "Заявки" - working incorrect. {ex}')
+            else:
+                logging.info('List item "Транспорт" in dropdown "Заявки" - working correctly')
+            finally:
+                os.remove(os.path.join(stuff_path, 'Vehicles.csv'))
         except BaseException as ex:
             logging.error('Something goes wrong during testing '
                           '"Заявки". May be one or more element not found or been deprecated.')
