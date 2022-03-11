@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 from test_dataset import filter_end_date_pass, filter_number_application_vehicle_pass, filter_type_vehicle, \
     filter_number_pass_vehicle, main_company, date_from_app_v_s, date_to_app_v_s, filter_organization, filter_datepick, \
     filter_type_vehicle_app, vehicle_id, filter_name_vehicle_app, filter_position, filter_name_pass, \
-    filter_number_application_worker, filter_birth, filter_number_pass_worker
+    filter_number_application_worker, filter_birth, filter_number_pass_worker, type_unit
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -73,6 +73,96 @@ driver = enable_download_in_headless_chrome(driver, stuff_path)
 
 # Other var
 timeout = 10
+
+
+def filter_for_denial(org=None, tab=False, type_units=None):
+    # Filter company
+    if org:
+        filter_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'select2-MainCompanyId-container')))
+        filter_company.click()
+        change_company = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.CLASS_NAME, 'select2-search__field')))
+        change_company.send_keys(org)
+        WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, """//li[text()='АО "ПРЕМЬЕРСТРОЙ"']"""))).click()
+        filter_enter_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]')))
+        filter_enter_button.click()
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table-striped")
+        rows = table_req.find_all('tr')[1:]
+        units = list()
+        for cell in rows:
+            count = 0
+            for check_cell in cell:
+                res = check_cell.text.strip().split('</td>')
+                count += 1
+                if count == 4:
+                    for check_res in res:
+                        units.append(check_res)
+        error = 0
+        for check_units in units:
+            if check_units == org:
+                continue
+            else:
+                error += 1
+                break
+
+        if error == 0:
+            logging.info('"Организация" filter working correct')
+        elif error >= 1:
+            logging.error('"Организация" filter working incorrect')
+
+        driver.execute_script('resetFilter();')
+        if tab:
+            WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, "//div[@isactual='false']"))).click()
+        driver.execute_script('openFilterBlock(this);')
+
+    # Type
+    if type_units:
+        filter_type = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//button[@data-id="ReportItemTypeId"]')))
+        filter_type.click()
+        change_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@type="text"]')))
+        change_filter.send_keys(type_units, Keys.ENTER)
+        filter_enter_button = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@value="Применить"]')))
+        filter_enter_button.click()
+
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table-striped")
+        rows = table_req.find_all('tr')[1:]
+        types = list()
+        for cell in rows:
+            count = 0
+            for check_cell in cell:
+                res = check_cell.text.strip().split('</td>')
+                count += 1
+                if count == 6:
+                    for check_res in res:
+                        types.append(check_res)
+        error = 0
+        for check_type in types:
+            if check_type == type_units:
+                continue
+            else:
+                error += 1
+                break
+
+        if error >= 1:
+            logging.error('"Тип" filter working incorrect')
+        elif error == 0:
+            logging.info('"Тип" filter working correct')
+
+        driver.execute_script('resetFilter();')
+        if tab:
+            WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, "//div[@isactual='false']"))).click()
+        driver.execute_script('openFilterBlock(this);')
 
 
 def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
@@ -236,7 +326,6 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
             logging.error('"Организация" filter working incorrect')
         elif len(units) == 10:
             logging.info('"Организация" filter working correct')
-
         driver.execute_script('resetFilter();')
         if tab:
             WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
@@ -1019,182 +1108,210 @@ def check_data(url):
                 reports_tab = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
                     (By.XPATH, '//a[@href="/IndustrialSecurity/ExpiredDocs"]')))
                 reports_tab.click()
+
+                # Pagination test
+                page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="?page=2&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
+                if page_number:
+                    pagination_test(page_number)
+
+                download_doc()
+
+                for check_file in os.listdir(stuff_path):
+                    if check_file in 'ExpiredDocs.csv':
+                        logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
+
+                # Filter test
+                open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterDesktop')))
+                open_filter.click()
+
+                try:
+                    # Filter type
+                    enter_selector = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//button[@data-id="Type"]')))
+                    enter_selector.click()
+                    change_type = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//input[@type="text"]')))
+                    change_type.send_keys('Сотрудник', Keys.ENTER)
+
+                    submit_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//input[@value="Применить"]')))
+                    submit_filter.click()
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    table_req = soup.find('table', class_="table table-hover table-striped")
+                    rows = table_req.find_all('tr')
+                    cells = [row.find_all('td') for row in rows]
+                    units = list()
+                    for cell in cells:
+                        count = 0
+                        for check_cell in cell:
+                            count += 1
+                            if count == 5:
+                                res = check_cell.text.strip().split(' ')
+                                for check_res in res:
+                                    units.append(check_res)
+                                count = 0
+                    error = 0
+                    for check_unit in units:
+                        if check_unit != 'Сотрудник':
+                            error += 1
+                    if error >= 1:
+                        logging.error('"Тип" filter working incorrect')
+                    else:
+                        logging.info('"Тип" filter working correct')
+
+                    reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.CLASS_NAME, 'a-clear')))
+                    reset_filter.click()
+
+                    driver.execute_script('openFilterBlock(this);')
+
+                    # Filter name
+                    enter_name = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'Name')))
+                    enter_name.send_keys('Карманов Марсель Феликсович', Keys.ENTER)
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    table_req = soup.find('table', class_="table table-hover table-striped")
+                    rows = table_req.find_all('tr')
+                    cells = [row.find_all('td') for row in rows]
+                    units = list()
+                    for cell in cells:
+                        count = 0
+                        for check_cell in cell:
+                            count += 1
+                            if count == 4:
+                                res = check_cell.text.strip().split('</td>')
+                                for check_res in res:
+                                    units.append(check_res)
+                                count = 0
+                    clear_units = [j for j in units if j != 'Не действителен']
+                    error = 0
+                    for check_unit in clear_units:
+                        if 'Карманов Марсель Феликсович' not in check_unit:
+                            error += 1
+                    if error >= 1:
+                        logging.error('"Наименование" filter working incorrect')
+                    else:
+                        logging.info('"Наименование" filter working correct')
+
+                    reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.CLASS_NAME, 'a-clear')))
+                    reset_filter.click()
+
+                    driver.execute_script('openFilterBlock(this);')
+
+                    # Filter doc
+                    enter_doc = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'DocName')))
+                    enter_doc.send_keys('Трудовой договор', Keys.ENTER)
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    table_req = soup.find('table', class_="table table-hover table-striped")
+                    rows = table_req.find_all('tr')
+                    cells = [row.find_all('td') for row in rows]
+                    units = list()
+                    for cell in cells:
+                        count = 0
+                        for check_cell in cell:
+                            count += 1
+                            if count == 6:
+                                res = check_cell.text.strip().split('</td>')
+                                for check_res in res:
+                                    units.append(check_res)
+                                count = 0
+                    error = 0
+                    for check_unit in units:
+                        if 'Трудовой договор' not in check_unit:
+                            error += 1
+                    if error >= 1:
+                        logging.error('"Документ" filter working incorrect')
+                    else:
+                        logging.info('"Документ" filter working correct')
+
+                    reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.CLASS_NAME, 'a-clear')))
+                    reset_filter.click()
+
+                    driver.execute_script('openFilterBlock(this);')
+
+                    # Filter date
+                    date_from = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'dateFrom')))
+                    date_from.send_keys('28.02.2022')
+
+                    time.sleep(1)
+
+                    date_to = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.ID, 'dateTo')))
+                    date_to.send_keys('28.02.2022')
+                    submit_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//input[@value="Применить"]')))
+                    submit_filter.click()
+
+                    soup = BeautifulSoup(driver.page_source, 'html.parser')
+                    table_req = soup.find('table', class_="table table-hover table-striped")
+                    rows = table_req.find_all('tr')
+                    cells = [row.find_all('td') for row in rows]
+                    units = list()
+                    for cell in cells:
+                        count = 0
+                        for check_cell in cell:
+                            count += 1
+                            if count == 7:
+                                res = check_cell.text.strip().split('</td>')
+                                for check_res in res:
+                                    units.append(check_res)
+                                count = 0
+                    error = 0
+                    for check_unit in units:
+                        if '28.02.2022' not in check_unit:
+                            error += 1
+                    if error >= 1:
+                        logging.error('"Дата окончания" filter working incorrect')
+                    else:
+                        logging.info('"Дата окончания" filter working correct')
+
+                    reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                        (By.CLASS_NAME, 'a-clear')))
+                    reset_filter.click()
+                except BaseException as ex:
+                    logging.error(f'Filter working incorrect. {ex}')
+                else:
+                    logging.info('Filter working correctly')
             except BaseException as ex:
                 logging.error(f'List item "Истекающие документы" working incorrect. {ex}')
             else:
                 logging.info('List item "Истекающие документы" working correctly')
 
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-
-            # Pagination test
-            page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                (By.XPATH, '//a[@href="?page=2&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
-            if page_number:
-                pagination_test(page_number)
-
-            download_doc()
-
-            for check_file in os.listdir(stuff_path):
-                if check_file in 'ExpiredDocs.csv':
-                    logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
-
-            # Filter test
-            open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                (By.ID, 'btnFilterDesktop')))
-            open_filter.click()
-
+            # Reason for denial
             try:
-                # Filter type
-                enter_selector = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.XPATH, '//button[@data-id="Type"]')))
-                enter_selector.click()
-                change_type = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.XPATH, '//input[@type="text"]')))
-                change_type.send_keys('Сотрудник', Keys.ENTER)
+                denial = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="/IndustrialSecurity/CanceledReasons"]')))
+                denial.click()
 
-                submit_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.XPATH, '//input[@value="Применить"]')))
-                submit_filter.click()
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
-                table_req = soup.find('table', class_="table table-hover table-striped")
-                rows = table_req.find_all('tr')
-                cells = [row.find_all('td') for row in rows]
-                units = list()
-                for cell in cells:
-                    count = 0
-                    for check_cell in cell:
-                        count += 1
-                        if count == 5:
-                            res = check_cell.text.strip().split(' ')
-                            for check_res in res:
-                                units.append(check_res)
-                            count = 0
-                error = 0
-                for check_unit in units:
-                    if check_unit != 'Сотрудник':
-                        error += 1
-                if error >= 1:
-                    logging.error('"Тип" filter working incorrect')
-                else:
-                    logging.info('"Тип" filter working correct')
+                # Pagination test
+                page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//a[@href="?page=2&SortingColumn=CanceledDate&SortingDirection=desc&IsActual=True"]')))
+                if page_number:
+                    pagination_test(page_number)
 
-                reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.CLASS_NAME, 'a-clear')))
-                reset_filter.click()
+                download_doc()
 
-                driver.execute_script('openFilterBlock(this);')
+                for check_file in os.listdir(stuff_path):
+                    if check_file in 'CanceledReasons.csv':
+                        logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
 
-                # Filter name
-                enter_name = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.ID, 'Name')))
-                enter_name.send_keys('Карманов Марсель Феликсович', Keys.ENTER)
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
-                table_req = soup.find('table', class_="table table-hover table-striped")
-                rows = table_req.find_all('tr')
-                cells = [row.find_all('td') for row in rows]
-                units = list()
-                for cell in cells:
-                    count = 0
-                    for check_cell in cell:
-                        count += 1
-                        if count == 4:
-                            res = check_cell.text.strip().split('</td>')
-                            for check_res in res:
-                                units.append(check_res)
-                            count = 0
-                clear_units = [j for j in units if j != 'Не действителен']
-                error = 0
-                for check_unit in clear_units:
-                    if 'Карманов Марсель Феликсович' not in check_unit:
-                        error += 1
-                if error >= 1:
-                    logging.error('"Наименование" filter working incorrect')
-                else:
-                    logging.info('"Наименование" filter working correct')
+                # Filter test
+                open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterDesktop')))
+                open_filter.click()
 
-                reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.CLASS_NAME, 'a-clear')))
-                reset_filter.click()
-
-                driver.execute_script('openFilterBlock(this);')
-
-                # Filter doc
-                enter_doc = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.ID, 'DocName')))
-                enter_doc.send_keys('Трудовой договор', Keys.ENTER)
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
-                table_req = soup.find('table', class_="table table-hover table-striped")
-                rows = table_req.find_all('tr')
-                cells = [row.find_all('td') for row in rows]
-                units = list()
-                for cell in cells:
-                    count = 0
-                    for check_cell in cell:
-                        count += 1
-                        if count == 6:
-                            res = check_cell.text.strip().split('</td>')
-                            for check_res in res:
-                                units.append(check_res)
-                            count = 0
-                error = 0
-                for check_unit in units:
-                    if 'Трудовой договор' not in check_unit:
-                        error += 1
-                if error >= 1:
-                    logging.error('"Документ" filter working incorrect')
-                else:
-                    logging.info('"Документ" filter working correct')
-
-                reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.CLASS_NAME, 'a-clear')))
-                reset_filter.click()
-
-                driver.execute_script('openFilterBlock(this);')
-
-                # Filter date
-                date_from = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.ID, 'dateFrom')))
-                date_from.send_keys('28.02.2022')
-
-                time.sleep(1)
-
-                date_to = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.ID, 'dateTo')))
-                date_to.send_keys('28.02.2022')
-                submit_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.XPATH, '//input[@value="Применить"]')))
-                submit_filter.click()
-
-                soup = BeautifulSoup(driver.page_source, 'html.parser')
-                table_req = soup.find('table', class_="table table-hover table-striped")
-                rows = table_req.find_all('tr')
-                cells = [row.find_all('td') for row in rows]
-                units = list()
-                for cell in cells:
-                    count = 0
-                    for check_cell in cell:
-                        count += 1
-                        if count == 7:
-                            res = check_cell.text.strip().split('</td>')
-                            for check_res in res:
-                                units.append(check_res)
-                            count = 0
-                error = 0
-                for check_unit in units:
-                    if '28.02.2022' not in check_unit:
-                        error += 1
-                if error >= 1:
-                    logging.error('"Дата окончания" filter working incorrect')
-                else:
-                    logging.info('"Дата окончания" filter working correct')
-
-                reset_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-                    (By.CLASS_NAME, 'a-clear')))
-                reset_filter.click()
+                filter_for_denial(org=main_company, type_units=type_unit)
+                # filter_for_denial(type_units=type_unit)
             except BaseException as ex:
-                logging.error(f'Filter working incorrect. {ex}')
+                logging.error(f'List item "Причины отказов" working incorrect. {ex}')
             else:
-                logging.info('Filter working correctly')
+                logging.info('List item "Причины отказов" working correctly')
 
         except BaseException as ex:
             logging.error('Something goes wrong during testing '
@@ -1207,6 +1324,7 @@ def check_data(url):
             print('[SUCCESS]: Testing "Отчёты" - has finished!\n')
         finally:
             os.remove(os.path.join(stuff_path, 'ExpiredDocs.csv'))
+            os.remove(os.path.join(stuff_path, 'CanceledReasons.csv'))
     except BaseException as ex:
         print(f'{ex} Something goes wrong. See the log file.')
 
