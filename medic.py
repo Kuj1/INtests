@@ -72,6 +72,13 @@ timeout = 10
 
 
 def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
+    """
+    Test filter's input
+    :param grand_contract: main contract
+    :param date_app: date application
+    :param type_application: type application
+    :return:
+    """
     # Filter grand contact
     if grand_contract:
         enter_grand_contract = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
