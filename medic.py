@@ -13,8 +13,6 @@ from bs4 import BeautifulSoup
 
 from test_dataset import main_company, date_from_app, date_to_app
 
-from applicant import download_doc, pagination_test, input_elem
-
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
     """
@@ -242,6 +240,18 @@ def download_doc():
                       f'working incorrect. {ex}')
     else:
         logging.info('Button "Excel" working correctly')
+
+
+def input_elem(elem, key, key_bind):
+    """
+    Focus and enter value on login screen
+    :param elem: input element, which must be in focus
+    :param key: value, which must be enter
+    :param key_bind: key bind
+    :return:
+    """
+    elem.clear()
+    elem.send_keys(key, key_bind)
 
 
 def check_data(url):

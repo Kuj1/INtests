@@ -15,8 +15,6 @@ from bs4 import BeautifulSoup
 from test_dataset import filter_end_date_pass, filter_number_application_vehicle_pass, filter_type_vehicle, \
     filter_number_pass_vehicle, main_company, date_from_app_v_s, date_to_app_v_s
 
-from applicant import download_doc, pagination_test, input_elem
-
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
     """
@@ -61,7 +59,7 @@ PASSWD = os.getenv('PASSWD')
 options = webdriver.ChromeOptions()
 options.add_argument('--disable-blink-features=AutomationControlled')
 options.add_argument('start-maximized')
-# options.add_argument('--headless')
+options.add_argument('--headless')
 options.add_argument('--enable-javascript')
 download_pref = {'download.default_directory': stuff_path, "download.prompt_for_download": False}
 options.add_experimental_option("prefs", download_pref)
@@ -558,6 +556,18 @@ def download_doc():
                       f'working incorrect. {ex}')
     else:
         logging.info('Button "Excel" working correctly')
+
+
+def input_elem(elem, key, key_bind):
+    """
+    Focus and enter value on login screen
+    :param elem: input element, which must be in focus
+    :param key: value, which must be enter
+    :param key_bind: key bind
+    :return:
+    """
+    elem.clear()
+    elem.send_keys(key, key_bind)
 
 
 def check_data(url):
