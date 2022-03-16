@@ -1,8 +1,8 @@
 import os
 import time
-# import logging
-# import allure
-# import pytest
+import logging
+import allure
+import pytest
 
 from selenium import webdriver
 from selenium.webdriver import Keys
@@ -250,12 +250,12 @@ class DriverInitialize:
     timeout = 10
 
 
-class TestMedic:
+class TestCurator:
     def test_auth(self):
         DriverInitialize.driver.get(DriverInitialize.URL)
 
         # Authorization
-        login = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        login = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.presence_of_element_located((By.ID, 'Email')))
         input_elem(login, DriverInitialize.LOGIN, Keys.ENTER)
 
@@ -267,21 +267,21 @@ class TestMedic:
             (By.CLASS_NAME, 'swal2-confirm'))).click()
 
         check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#medicWrap"]')))
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#curatorWrap"]')))
 
         if check_title:
             assert True
         else:
             assert False
 
-    # Enter to medic's folder
-    def test_medic_folder(self):
-        enter_medic = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#medicWrap"]')))
-        enter_medic.click()
+    # Enter to curator's folder
+    def test_curator_folder(self):
+        enter_curator = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#curatorWrap"]')))
+        enter_curator.click()
 
         check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#medicApplications"]')))
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#curatorApplications"]')))
 
         if check_title:
             assert True
@@ -289,22 +289,22 @@ class TestMedic:
             assert False
 
     # Applications
-    def test_medic_app_folder(self):
-        enter_app = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#medicApplications"]')))
+    def test_curator_app_folder(self):
+        enter_app = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="#curatorApplications"]')))
         enter_app.click()
 
         check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Medic/Applications"]')))
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/Applications"]')))
 
         if check_title:
             assert True
         else:
             assert False
 
-    def test_medic_app_page(self):
-        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Medic/Applications"]')))
+    def test_curator_app_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/Applications"]')))
         click_app_li.click()
 
         role_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
@@ -328,14 +328,15 @@ class TestMedic:
                 assert False
 
         # Pagination test
-        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="?page=2&IsActual=True"]')))
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH,
+             '//a[@href="?page=2&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
         # Filter test
-        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.ID, 'btnFilterMobile')))
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'btnFilterMobile')))
         open_filter.click()
 
         filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
@@ -343,6 +344,242 @@ class TestMedic:
         filter_for_apps(type_application='ТМЦ')
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
+
+    # Dict
+    def test_curator_dict_folder(self):
+        dict_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="#curatorDictWrap"]')))
+        dict_tab.click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/SubCompanies"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False
+
+    def test_curator_sub_comp_page(self):
+        sub_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="/Curator/SubCompanies"]')))
+        sub_company.click()
+
+        role_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.ID, 'lblRoleName')))
+
+        action_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.ID, 'lblActionName')))
+
+        check_title = f'/{role_name}/{action_name}'
+
+        if check_title:
+            assert True
+        else:
+            assert False
+
+        # Pagination test
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&MainCompanyId=1&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+        not_actual = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//div[@isactual="false"]')))
+        not_actual.click()
+
+        actual = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//div[@isactual="true"]')))
+        actual.click()
+
+    # Reports
+    def test_curator_report_folder(self):
+        reports_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="#curatorReportsWrap"]')))
+        reports_tab.click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/ExpiredDocs"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False
+
+        # Expired docs
+
+    def test_curator_expired_docs_page(self):
+        reports_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="/Curator/ExpiredDocs"]')))
+        reports_tab.click()
+
+        # Pagination test
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+        download_doc()
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'ExpiredDocs.csv':
+                assert True
+            else:
+                assert False
+
+    def test_filter_expired_docs_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+
+        # Filter type
+        enter_selector = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//button[@data-id="Type"]')))
+        enter_selector.click()
+        change_type = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@type="text"]')))
+        change_type.send_keys('Сотрудник', Keys.ENTER)
+
+        submit_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
+
+        submit_filter.click()
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table table-hover table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        units = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 5:
+                    res = check_cell.text.strip().split(' ')
+                    for check_res in res:
+                        units.append(check_res)
+                    count = 0
+        error = 0
+        for check_unit in units:
+            if check_unit != 'Сотрудник':
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False
+
+        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
+        reset_filter.click()
+
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
+
+        # Filter name
+        enter_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.ID, 'Name')))
+        enter_name.send_keys('Карманов Марсель Феликсович', Keys.ENTER)
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table table-hover table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        units = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 4:
+                    res = check_cell.text.strip().split('</td>')
+                    for check_res in res:
+                        units.append(check_res)
+                    count = 0
+        clear_units = [j for j in units if j != 'Не действителен']
+        error = 0
+        for check_unit in clear_units:
+            if 'Карманов Марсель Феликсович' not in check_unit:
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False
+
+        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
+        reset_filter.click()
+
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
+
+        # Filter doc
+        enter_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'DocName')))
+        enter_doc.send_keys('Трудовой договор', Keys.ENTER)
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table table-hover table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        units = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 6:
+                    res = check_cell.text.strip().split('</td>')
+                    for check_res in res:
+                        units.append(check_res)
+                    count = 0
+        error = 0
+        for check_unit in units:
+            if 'Трудовой договор' not in check_unit:
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False
+
+        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
+        reset_filter.click()
+
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
+
+        # Filter date
+        date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'dateFrom')))
+        date_from.send_keys('28.02.2022')
+
+        time.sleep(1)
+
+        date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'dateTo')))
+        date_to.send_keys('28.02.2022')
+        submit_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
+        submit_filter.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table table-hover table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        units = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 7:
+                    res = check_cell.text.strip().split('</td>')
+                    for check_res in res:
+                        units.append(check_res)
+                    count = 0
+        error = 0
+        for check_unit in units:
+            if '28.02.2022' not in check_unit:
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False
+
+        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
+        reset_filter.click()
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'ExpiredDocs.csv'))
 
         DriverInitialize.driver.close()
         DriverInitialize.driver.quit()
