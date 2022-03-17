@@ -437,6 +437,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
                     res = check_cell.text.strip().split(' ')
                     for check_res in res:
                         num_app = ''.join(check_res)
+        time.sleep(5)
         if num_app == number_app:
             assert True
         else:
@@ -764,9 +765,8 @@ class TestApplicant:
             assert False
 
     def test_applicant_folder(self):
-        enter_applicant = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#applicantWrap"]')))
-        # enter_applicant.click()
 
         check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#applicantApplications"]')))
@@ -776,7 +776,7 @@ class TestApplicant:
         else:
             assert False
 
-    def test_applicant_inv_folder(self):
+    def test_inv_folder(self):
         enter_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#applicantInviteWrap"]')))
         enter_inv.click()
@@ -789,7 +789,7 @@ class TestApplicant:
         else:
             assert False
 
-    def test_applicant_units_page(self):
+    def test_inv_worker_page(self):
         click_inv_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/WorkerInvites']")))
         click_inv_li.click()
@@ -820,7 +820,7 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения сотрудников.csv'))
 
-    def test_applicant_pagination_unit_page(self):
+    def test_inv_pagination_worker_page(self):
         not_actual_inv_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
         not_actual_inv_workers.click()
@@ -831,7 +831,7 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
-    def test_applicant_filter_unit_page(self):
+    def test_inv_filter_worker_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))
         open_filter.click()
@@ -841,7 +841,7 @@ class TestApplicant:
         filter_for_units(org=filter_organization, name=filter_name_inv,
                          position=filter_position, date_birth=filter_birth, tab=True)
 
-    def test_applicant_vehicle_page(self):
+    def test_inv_vehicle_page(self):
         inv_vehicles = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/VehicleInvites"]')))
         inv_vehicles.click()
@@ -872,7 +872,7 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения транспорта.csv'))
 
-    def test_applicant_pagination_vehicle_page(self):
+    def test_inv_pagination_vehicle_page(self):
         not_actual_vehicles = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//div[@isactual="false"]')))
         not_actual_vehicles.click()
@@ -882,7 +882,7 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
-    def test_applicant_filter_vehicle_page(self):
+    def test_inv_filter_vehicle_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.ID, 'btnFilterDesktop')))
         open_filter.click()
@@ -891,7 +891,7 @@ class TestApplicant:
         filter_number_docs(number_app=filter_number_application_vehicle,
                            count_column=4, number_inv=filter_number_invites_vehicle)
 
-    def test_applicant_value_page(self):
+    def test_inv_value_page(self):
         inv_values = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="/Applicant/ValueInvites"]')))
         inv_values.click()
@@ -925,305 +925,236 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения ТМЦ.csv'))
 
+    def test_inv_print_inv_page(self):
+        inv_print = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="/Applicant/PrintInvite/GetPdf"]')))
+        inv_print.click()
+
+        download_inv_pdf = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Скачать"]')))
+        download_inv_pdf.click()
+
+        if WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                (By.ID, 'ApplicationId-error'))):
+            assert True
+        else:
+            assert False
+
+        download_inv_pdf = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Скачать"]')))
+        download_inv_pdf.send_keys('1000000 , d s addfdf', Keys.ENTER)
+
+        if WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                (By.CLASS_NAME, 'validation-summary-errors'))):
+            assert True
+        else:
+            assert False
+
+    def test_pass_folder(self):
+        passes_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, "//a[@href='#applicantPassesWrap']")))
+        passes_wrap.click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/WorkerPasses"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False
+
+    def test_pass_worker_page(self):
+        click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/WorkerPasses']")))
+        click_pass_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Пропуска сотрудников':
+            assert True
+        else:
+            assert False
+
+        not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_workers.click()
+        download_doc()
+
+        actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='true']")))
+        actual_pass_workers.click()
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'WorkerPasses.csv':
+                assert True
+            else:
+                assert False
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'WorkerPasses.csv'))
+
+    def test_pass_pagination_worker_page(self):
+        not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_workers.click()
+
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable(
+                (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=desc&IsActual=False"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    def test_pass_filter_worker_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+
+        filter_for_units(org=filter_organization, name=filter_name_pass,
+                         position=filter_position, date_birth=filter_birth, tab=True)
+        filter_number_docs(number_app=filter_number_application_worker, count_column=6,
+                           number_pass=filter_number_pass_worker, end_date=filter_end_date_pass)
+        # Input "Антитела" - manual testing only
+
+    def test_pass_vehicle_page(self):
+        click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/VehiclePasses']")))
+        click_pass_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Пропуска транспорта':
+            assert True
+        else:
+            assert False
+
+        not_actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_vehicle.click()
+        download_doc()
+
+        actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='true']")))
+        actual_pass_vehicle.click()
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'VehiclePasses.csv':
+                assert True
+            else:
+                assert False
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'VehiclePasses.csv'))
+
+    def test_pass_pagination_vehicle_page(self):
+        not_actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_vehicle.click()
+
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[@href="?page=2&IsActual=False"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    def test_pass_filter_vehicle_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+
+        filter_for_units(type_vehicle=filter_type_vehicle)
+        filter_number_docs(number_app=filter_number_application_vehicle, count_column=6,
+                           number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass)
+
+    def test_pass_value_page(self):
+        click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ValuePasses"]')))
+        click_pass_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Пропуска ТМЦ':
+            assert True
+        else:
+            assert False
+
+        not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_workers.click()
+        download_doc()
+
+        actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='true']")))
+        actual_pass_workers.click()
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'ValuePasses.csv':
+                assert True
+            else:
+                assert False
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'ValuePasses.csv'))
+
+        # Less than one page. Testing pagination impossible
+        # Filter only manual testing
+
+    def test_app_folder(self):
+        app_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="#applicantApplications"]')))
+        app_wrap.click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Applications"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False
+
+    def test_app_application_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Applications"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Заявки':
+            assert True
+        else:
+            assert False
+
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'Applications.csv':
+                assert True
+            else:
+                assert False
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
+
+    def test_app_pagination_application_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[@href="?page=2&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    def test_app_filter_application_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterMobile')))
+        open_filter.click()
+        filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
+        filter_for_apps(type_application='Транспорт', date_app=True)
+        filter_for_apps(type_application='ТМЦ')
+        # Other filter input's should tested manually
+
     def test_quit(self):
         DriverInitialize.driver.close()
         DriverInitialize.driver.quit()
         os.rmdir(DriverInitialize.stuff_path)
-
-#
-#     # Print Invites
-#     try:
-#         inv_print = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="/Applicant/PrintInvite/GetPdf"]')))
-#         try:
-#             inv_print.click()
-#         except BaseException as ex:
-#             logging.error(f'List item "Печать приглашений" - working incorrect. {ex}')
-#         else:
-#             logging.info('List item "Печать приглашений" - working correctly')
-#
-#         try:
-#             download_inv_pdf = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, '//input[@value="Скачать"]')))
-#             download_inv_pdf.click()
-#
-#             WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.ID, 'ApplicationId-error')))
-#         except BaseException as ex:
-#             logging.error(f'Verification - failed (no alert for empty input). {ex}')
-#         else:
-#             logging.info('Verification for empty required input - working correctly')
-#
-#         try:
-#             download_inv_pdf = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, '//input[@value="Скачать"]')))
-#             download_inv_pdf.send_keys('1000000 , d s addfdf', Keys.ENTER)
-#
-#             WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.CLASS_NAME, 'validation-summary-errors')))
-#         except BaseException as ex:
-#             logging.error(f'Verification - failed. See log file. {ex}')
-#         else:
-#             logging.info('Verification for random input - working correctly')
-#     except BaseException as ex:
-#         logging.error(f'List item "Печать приглашений" in dropdown "Приглашения" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "Печать приглашений" in dropdown "Приглашения" - working correctly')
-# except BaseException as ex:
-#     logging.error('Something goes wrong during testing '
-#                   '"Приглашения". May be one or more element not found or been deprecated.')
-#     print('[ERROR]: Something goes wrong during testing '
-#           '"Приглашения". May be one or more element not found or been deprecated.')
-#     logging.error(ex)
-# else:
-#     logging.info('Dropdown "Приглашения" and all of elements in it - working correctly')
-#     logging.info('Testing "Приглашения" - is finished!')
-#     print('[SUCCESS]: Testing "Приглашения" - is finished!\n')
-#
-# # Passes
-# logging.info('Testing "Пропуска" - has begun...')
-# print('[INFO]: Testing "Пропуска" - has begun...')
-# try:
-#     passes_wrap = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, "//a[@href='#applicantPassesWrap']")))
-#     passes_wrap.click()
-#
-#     # Workers passes
-#     try:
-#         pass_workers = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, "//a[@href='/Applicant/WorkerPasses']")))
-#         try:
-#             pass_workers.click()
-#         except BaseException as ex:
-#             logging.error(f'List item "Сотрудники" - working incorrect. {ex}')
-#         else:
-#             logging.info('List item "Сотрудники" - working correctly')
-#
-#         try:
-#             not_actual_pass_workers = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, "//div[@isactual='false']")))
-#             not_actual_pass_workers.click()
-#         except BaseException as ex:
-#             logging.error(f'Tab "Не действующие" in list item "Сотрудники" - working incorrect. {ex}')
-#         else:
-#             logging.info('Tab "Не действующие" in list item "Сотрудники" - working correctly')
-#
-#         download_doc()
-#
-#         # Pagination test
-#         page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=desc&IsActual=False"]')))
-#         if page_number:
-#             pagination_test(page_number)
-#
-#         # Filter test
-#         open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.ID, 'btnFilterDesktop')))
-#         open_filter.click()
-#         try:
-#             filter_for_units(org=filter_organization, name=filter_name_pass,
-#                              position=filter_position, date_birth=filter_birth, tab=True)
-#             filter_number_docs(number_app=filter_number_application_worker, count_column=6,
-#                                number_pass=filter_number_pass_worker, end_date=filter_end_date_pass)
-#
-#             # Filter antibodies
-#             logging.warning('Input "Антитела" - manual testing only')
-#
-#         except BaseException as ex:
-#             logging.error(f'Filter working incorrect. {ex}')
-#         else:
-#             logging.info('Filter working correctly')
-#
-#         try:
-#             actual_pass_workers = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, "//div[@isactual='true']")))
-#             actual_pass_workers.click()
-#         except BaseException as ex:
-#             logging.error(f'Tab "Действующие" in list item "Сотрудники"- working incorrect. {ex}')
-#         else:
-#             logging.info('Tab "Действующие" in list item "Сотрудники" - working correctly')
-#
-#         download_doc()
-#
-#         for check_file in os.listdir(stuff_path):
-#             if check_file in 'WorkerPasses.csv':
-#                 logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
-#     except BaseException as ex:
-#         logging.error(f'List item "Сотрудники" in dropdown "Пропуска" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "Сотрудники" in dropdown "Пропуска" - working correctly')
-#     finally:
-#         os.remove(os.path.join(stuff_path, 'WorkerPasses.csv'))
-#
-#     # Vehicles passes
-#     try:
-#         pass_vehicles = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, "//a[@href='/Applicant/VehiclePasses']")))
-#         try:
-#             pass_vehicles.click()
-#         except BaseException as ex:
-#             logging.error(f'List item "Транспорт" - working incorrect. {ex}')
-#         else:
-#             logging.info('List item "Транспорт" - working correctly')
-#
-#         try:
-#             not_actual_pass_vehicles = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, "//div[@isactual='false']")))
-#             not_actual_pass_vehicles.click()
-#         except BaseException as ex:
-#             logging.error(f'Tab "Не действующие" in list item "Транспорт" - working incorrect. {ex}')
-#         else:
-#             logging.info('Tab "Не действующие" in list item "Транспорт" - working correctly')
-#
-#         download_doc()
-#
-#         # Pagination test
-#         page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="?page=2&IsActual=False"]')))
-#         if page_number:
-#             pagination_test(page_number)
-#
-#         # Filter test
-#         open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.ID, 'btnFilterDesktop')))
-#         open_filter.click()
-#
-#         filter_for_units(type_vehicle=filter_type_vehicle)
-#         filter_number_docs(number_app=filter_number_application_vehicle_pass, count_column=6,
-#                            number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass)
-#
-#         try:
-#             actual_pass_vehicles = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, "//div[@isactual='true']")))
-#             actual_pass_vehicles.click()
-#         except BaseException as ex:
-#             logging.error(f'Tab "Действующие" in list item "Транспорт"- working incorrect. {ex}')
-#         else:
-#             logging.info('Tab "Действующие" in list item "Транспорт" - working correctly')
-#
-#         download_doc()
-#
-#         for check_file in os.listdir(stuff_path):
-#             if check_file in 'VehiclePasses.csv':
-#                 logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
-#     except BaseException as ex:
-#         logging.error(f'List item "Транспорт" in dropdown "Пропуска" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "Транспорт" in dropdown "Пропуска" - working correctly')
-#     finally:
-#         os.remove(os.path.join(stuff_path, 'VehiclePasses.csv'))
-#
-#     # Value passes
-#     try:
-#         pass_values = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="/Applicant/ValuePasses"]')))
-#         try:
-#             pass_values.click()
-#         except BaseException as ex:
-#             logging.error(f'List item "ТМЦ" - working incorrect. {ex}')
-#         else:
-#             logging.info('List item "ТМЦ" - working correctly')
-#
-#         try:
-#             not_actual_pass_value = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, '//div[@isactual="false"]')))
-#             not_actual_pass_value.click()
-#         except BaseException as ex:
-#             logging.error(f'Tab "Не действующие" in list item "ТМЦ" - working incorrect. {ex}')
-#         else:
-#             logging.info('Tab "Не действующие" in list item "ТМЦ" - working correctly')
-#
-#         download_doc()
-#
-#         # # Pagination test
-#         # page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#         #     (By.XPATH, '')))
-#         # if page_number:
-#         #     pagination_test(page_number)
-#         # else:
-#         #     logging.warning('Less than one page. Testing impossible')
-#         logging.warning('Less than one page. Testing pagination impossible')
-#
-#         # Filter test
-#         logging.warning('Filter only manual testing')
-#
-#         try:
-#             actual_pass_value = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, '//div[@isactual="true"]')))
-#             actual_pass_value.click()
-#         except BaseException as ex:
-#             logging.error(f'Tab "Действующие" in list item "ТМЦ" - working incorrect. {ex}')
-#         else:
-#             logging.info('Tab "Действующие" in list item "ТМЦ" - working correctly')
-#
-#         download_doc()
-#
-#         for check_file in os.listdir(stuff_path):
-#             if check_file in 'ValuePasses.csv':
-#                 logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
-#     except BaseException as ex:
-#         logging.error(f'List item "ТМЦ" in dropdown "Пропуска" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "ТМЦ" in dropdown "Пропуска" - working correctly')
-#     finally:
-#         os.remove(os.path.join(stuff_path, 'ValuePasses.csv'))
-# except BaseException as ex:
-#     logging.error('Something goes wrong during testing '
-#                   '"Пропуска". May be one or more element not found or been deprecated.')
-#     print('[ERROR]: Something goes wrong during testing '
-#           '"Пропуска". May be one or more element not found or been deprecated.')
-#     logging.error(ex)
-# else:
-#     logging.info('Dropdown "Пропуска" and all of elements in it - working correctly')
-#     logging.info('Testing "Пропуска" - is finished!')
-#     print('[SUCCESS]: Testing "Пропуска" - is finished!\n')
-#
-# # Applications
-# logging.info('Testing "Заявки" - has begun...')
-# print('[INFO]: Testing "Заявки" - has begun...')
-# try:
-#     app_wrap = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#         (By.XPATH, '//a[@href="#applicantApplications"]')))
-#     app_wrap.click()
-#
-#     # Applications
-#     try:
-#         click_app_li = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="/Applicant/Applications"]')))
-#         click_app_li.click()
-#
-#         download_doc()
-#         for check_file in os.listdir(stuff_path):
-#             if check_file in 'Applications.csv':
-#                 logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
-#
-#         # Pagination test
-#         page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH,
-#              '//a[@href="?page=2&IsActual=True"]')))
-#         if page_number:
-#             pagination_test(page_number)
-#
-#         # Filter test
-#         open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.ID, 'btnFilterMobile')))
-#         open_filter.click()
-#
-#         logging.warning('Other filter input\'s should tested manually')
-#
-#         filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
-#         filter_for_apps(type_application='Транспорт', date_app=True)
-#         filter_for_apps(type_application='ТМЦ')
-#         logging.warning('"Субподрядчик" should tested manually')
-#         logging.warning('"Статус" should tested manually')
-#         logging.warning('"По роли" should tested manually')
-#         logging.warning('"Согласующий" should tested manually')
-#     except BaseException as ex:
-#         logging.error(f'List item "Заявки" in dropdown "Заявки" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "Заявки" in dropdown "Заявки" - working correctly')
-#     finally:
-#         os.remove(os.path.join(stuff_path, 'Applications.csv'))
 #
 #     # Workers
 #     try:
