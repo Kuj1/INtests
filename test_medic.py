@@ -274,7 +274,6 @@ class TestMedic:
         else:
             assert False
 
-    # Enter to medic's folder
     def test_medic_folder(self):
         enter_medic = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#medicWrap"]')))
@@ -288,7 +287,6 @@ class TestMedic:
         else:
             assert False
 
-    # Applications
     def test_medic_app_folder(self):
         enter_app = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#medicApplications"]')))
@@ -307,15 +305,10 @@ class TestMedic:
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Medic/Applications"]')))
         click_app_li.click()
 
-        role_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.ID, 'lblRoleName')))
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
 
-        action_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.ID, 'lblActionName')))
-
-        check_title = f'/{role_name}/{action_name}'
-
-        if check_title:
+        if name_page == 'Заявки':
             assert True
         else:
             assert False
@@ -327,13 +320,15 @@ class TestMedic:
             else:
                 assert False
 
-        # Pagination test
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
+
+    def test_medic_pagination_app_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="?page=2&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
-        # Filter test
+    def test_medic_filter_app_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'btnFilterMobile')))
         open_filter.click()
@@ -342,8 +337,7 @@ class TestMedic:
         filter_for_apps(type_application='Транспорт', date_app=True)
         filter_for_apps(type_application='ТМЦ')
 
-        os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
-
+    def test_quit(self):
         DriverInitialize.driver.close()
         DriverInitialize.driver.quit()
         os.rmdir(DriverInitialize.stuff_path)

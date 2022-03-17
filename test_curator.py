@@ -274,7 +274,6 @@ class TestCurator:
         else:
             assert False
 
-    # Enter to curator's folder
     def test_curator_folder(self):
         enter_curator = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#curatorWrap"]')))
@@ -288,7 +287,6 @@ class TestCurator:
         else:
             assert False
 
-    # Applications
     def test_curator_app_folder(self):
         enter_app = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#curatorApplications"]')))
@@ -307,15 +305,10 @@ class TestCurator:
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/Applications"]')))
         click_app_li.click()
 
-        role_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.ID, 'lblRoleName')))
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
 
-        action_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.ID, 'lblActionName')))
-
-        check_title = f'/{role_name}/{action_name}'
-
-        if check_title:
+        if name_page == 'Заявки':
             assert True
         else:
             assert False
@@ -327,14 +320,16 @@ class TestCurator:
             else:
                 assert False
 
-        # Pagination test
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
+
+    def test_curator_pagination_app_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH,
              '//a[@href="?page=2&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
-        # Filter test
+    def test_curator_filter_app_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterMobile')))
         open_filter.click()
@@ -343,9 +338,6 @@ class TestCurator:
         filter_for_apps(type_application='Транспорт', date_app=True)
         filter_for_apps(type_application='ТМЦ')
 
-        os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
-
-    # Dict
     def test_curator_dict_folder(self):
         dict_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#curatorDictWrap"]')))
@@ -364,24 +356,13 @@ class TestCurator:
             (By.XPATH, '//a[@href="/Curator/SubCompanies"]')))
         sub_company.click()
 
-        role_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.ID, 'lblRoleName')))
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
 
-        action_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.ID, 'lblActionName')))
-
-        check_title = f'/{role_name}/{action_name}'
-
-        if check_title:
+        if name_page == 'Субподрядчики':
             assert True
         else:
             assert False
-
-        # Pagination test
-        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="?page=2&MainCompanyId=1&IsActual=True"]')))
-        if page_number:
-            pagination_test(page_number)
 
         not_actual = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//div[@isactual="false"]')))
@@ -391,7 +372,12 @@ class TestCurator:
             (By.XPATH, '//div[@isactual="true"]')))
         actual.click()
 
-    # Reports
+    def test_curator_pagination_sub_comp_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&MainCompanyId=1&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
     def test_curator_report_folder(self):
         reports_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#curatorReportsWrap"]')))
@@ -405,18 +391,18 @@ class TestCurator:
         else:
             assert False
 
-        # Expired docs
-
     def test_curator_expired_docs_page(self):
         reports_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="/Curator/ExpiredDocs"]')))
         reports_tab.click()
 
-        # Pagination test
-        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="?page=2&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
-        if page_number:
-            pagination_test(page_number)
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Истекающие документы':
+            assert True
+        else:
+            assert False
 
         download_doc()
         for check_file in os.listdir(DriverInitialize.stuff_path):
@@ -425,7 +411,15 @@ class TestCurator:
             else:
                 assert False
 
-    def test_filter_expired_docs_page(self):
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'ExpiredDocs.csv'))
+
+    def test_curator_pagination_expired_docs_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    def test_curator_filter_expired_docs_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))
         open_filter.click()
@@ -579,8 +573,6 @@ class TestCurator:
             until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
         reset_filter.click()
 
-        os.remove(os.path.join(DriverInitialize.stuff_path, 'ExpiredDocs.csv'))
-
+    def test_quit(self):
         DriverInitialize.driver.close()
         DriverInitialize.driver.quit()
-        os.rmdir(DriverInitialize.stuff_path)
