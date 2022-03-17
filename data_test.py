@@ -137,7 +137,7 @@ filter_end_date_pass = '28.02.2022'
 # Vehicles filter dataset
 filter_datepick = '04.02.2020'
 filter_number_invites_vehicle = '0100000035A'
-filter_number_application_vehicle = '403'
+filter_number_application_vehicle = '230'
 filter_end_date_pass_v = '09.01.2022'
 filter_type_vehicle = 'Категория С (грузовые автомобили)'
 filter_number_application_vehicle_pass = '1000031A'
