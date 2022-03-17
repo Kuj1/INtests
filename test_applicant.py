@@ -437,7 +437,6 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
                     res = check_cell.text.strip().split(' ')
                     for check_res in res:
                         num_app = ''.join(check_res)
-        time.sleep(5)
         if num_app == number_app:
             assert True
         else:
@@ -678,10 +677,11 @@ def filter_for_deletion(request):
             if check_workers != 'fa-users':
                 error += 1
                 break
-        if error >= 1:
-            logging.error('Method "Сотрудник на удаление" of filter "Тип запроса" working incorrect')
+        if error == 0:
+            assert True
         else:
-            logging.info('Method "Сотрудник на удаление" of filter "Тип запроса" working correctly')
+            logging.error('Something wrong with input "Тип запроса" at this filter')
+            assert False
 
     elif request == 'Транспортное средство на удаление':
         error = 0
@@ -689,10 +689,11 @@ def filter_for_deletion(request):
             if check_workers != 'fa-car':
                 error += 1
                 break
-        if error >= 1:
-            logging.error('Method "Транспортное средство на удаление" of filter "Тип запроса" working incorrect')
+        if error == 1:
+            assert True
         else:
-            logging.info('Method "Транспортное средство на удаление" of filter "Тип запроса" working correctly')
+            logging.error('Something wrong with input "Тип запроса" at this filter')
+            assert False
 
 
 def input_elem(elem, key, key_bind):
@@ -1151,162 +1152,155 @@ class TestApplicant:
         filter_for_apps(type_application='ТМЦ')
         # Other filter input's should tested manually
 
+    def test_app_worker_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Workers"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Справочник сотрудников':
+            assert True
+        else:
+            assert False
+
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'Workers.csv':
+                assert True
+            else:
+                assert False
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Workers.csv'))
+
+    def test_app_pagination_worker_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=3&SortingColumn=FullName&SortingDirection=asc&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    def test_app_filter_worker_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+
+        filter_for_units(org=filter_organization, name=filter_name_pass,
+                         position=filter_position, link=True)
+        filter_for_units_app(birth_d=filter_birth)
+
+    def test_app_vehicle_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Vehicles"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Справочник транспортных средств':
+            assert True
+        else:
+            assert False
+
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'Vehicles.csv':
+                assert True
+            else:
+                assert False
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Vehicles.csv'))
+
+    def test_app_pagination_vehicle_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=asc&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    def test_app_filter_vehicle_page(self):
+
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+        filter_for_units(org=filter_organization, link=True)
+        filter_for_units_app(birth_d=filter_datepick,
+                             type_vehicle=filter_type_vehicle_app,
+                             id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app)
+
+    def test_app_deletion_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Заявки на удаление':
+            assert True
+        else:
+            assert False
+
+    def test_app_filter_deletion_page(self):
+        first_request = 'Транспортное средство на удаление'
+        second_request = 'Сотрудник на удаление'
+
+        filter_for_deletion(first_request)
+        DriverInitialize.driver.execute_script('resetFilter()')
+        time.sleep(1)
+
+        filter_for_deletion(second_request)
+        DriverInitialize.driver.execute_script('resetFilter()')
+        time.sleep(1)
+
+        DriverInitialize.driver.execute_script('openFilterBlock(this)')
+        filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.ID, 'dateFrom')))
+        filter_date_from.send_keys('09.08.2021')
+
+        filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.ID, 'dateTo')))
+        filter_date_to.send_keys('09.08.2021', Keys.ENTER)
+
+        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
+        filter_enter.click()
+
+        soup_req = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup_req.find('table', class_="table table-hover")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        date_create = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 4:
+                    res = check_cell.text.strip().split(' ')[:1]
+                    for check_res in res:
+                        date_create.append(check_res)
+                    count = 0
+        error = 0
+        for check_date in date_create:
+            if check_date != '09.08.2021':
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False
+
+    def test_app_detailed_view_deletion_page(self):
+        detailed_view = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable(
+                (By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion/WorkerDetails/201"]')))
+        detailed_view.click()
+
     def test_quit(self):
         DriverInitialize.driver.close()
         DriverInitialize.driver.quit()
         os.rmdir(DriverInitialize.stuff_path)
-#
-#     # Workers
-#     try:
-#         app_workers = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="/Applicant/Workers"]')))
-#         try:
-#             app_workers.click()
-#         except BaseException as ex:
-#             logging.error(f'List item "Сотрудники" - working incorrect. {ex}')
-#         else:
-#             logging.info('List item "Сотрудники" - working correctly')
-#
-#         download_doc()
-#
-#         for check_file in os.listdir(stuff_path):
-#             if check_file in 'Workers.csv':
-#                 logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
-#
-#         # Pagination test
-#         page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="?page=3&SortingColumn=FullName&SortingDirection=asc&IsActual=True"]')))
-#         if page_number:
-#             pagination_test(page_number)
-#
-#         # Filter test
-#         open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.ID, 'btnFilterDesktop')))
-#         open_filter.click()
-#
-#         filter_for_units(org=filter_organization, name=filter_name_pass,
-#                          position=filter_position, link=True)
-#         filter_for_units_app(birth_d=filter_birth)
-#     except BaseException as ex:
-#         logging.error(f'List item "Сотрудники" in dropdown "Заявки" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "Сотрудники" in dropdown "Заявки" - working correctly')
-#     finally:
-#         os.remove(os.path.join(stuff_path, 'Workers.csv'))
-#
-#     # Vehicles
-#     try:
-#         app_vehicles = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="/Applicant/Vehicles"]')))
-#         try:
-#             app_vehicles.click()
-#         except BaseException as ex:
-#             logging.error(f'List item "Транспорт" - working incorrect. {ex}')
-#         else:
-#             logging.info('List item "Транспорт" - working correctly')
-#
-#         download_doc()
-#
-#         for check_file in os.listdir(stuff_path):
-#             if check_file in 'Vehicles.csv':
-#                 logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
-#
-#         # Pagination test
-#         page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=asc&IsActual=True"]')))
-#         if page_number:
-#             pagination_test(page_number)
-#
-#         # Filter test
-#         open_filter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.ID, 'btnFilterDesktop')))
-#         open_filter.click()
-#         filter_for_units(org=filter_organization, link=True)
-#         filter_for_units_app(birth_d=filter_datepick,
-#                              type_vehicle=filter_type_vehicle_app,
-#                              id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app)
-#     except BaseException as ex:
-#         logging.error(f'List item "Транспорт" in dropdown "Заявки" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "Транспорт" in dropdown "Заявки" - working correctly')
-#     finally:
-#         os.remove(os.path.join(stuff_path, 'Vehicles.csv'))
-#
-#     # For deletion
-#     try:
-#         for_delete = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion"]')))
-#         try:
-#             for_delete.click()
-#         except BaseException as ex:
-#             logging.error(f'List item "На удаление" - working incorrect. {ex}')
-#         else:
-#             logging.info('List item "На удаление" - working correctly')
-#         first_request = 'Транспортное средство на удаление'
-#         second_request = 'Сотрудник на удаление'
-#
-#         filter_for_deletion(first_request)
-#         driver.execute_script('resetFilter()')
-#         time.sleep(1)
-#
-#         filter_for_deletion(second_request)
-#         driver.execute_script('resetFilter()')
-#         time.sleep(1)
-#
-#         driver.execute_script('openFilterBlock(this)')
-#         try:
-#             filter_date_from = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.ID, 'dateFrom')))
-#             filter_date_from.send_keys('09.08.2021')
-#
-#             filter_date_to = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.ID, 'dateTo')))
-#             filter_date_to.send_keys('09.08.2021', Keys.ENTER)
-#
-#             filter_enter = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, '//input[@value="Применить"]')))
-#             filter_enter.click()
-#
-#             soup_req = BeautifulSoup(driver.page_source, 'html.parser')
-#             table_req = soup_req.find('table', class_="table table-hover")
-#             rows = table_req.find_all('tr')
-#             cells = [row.find_all('td') for row in rows]
-#             date_create = list()
-#             for cell in cells:
-#                 count = 0
-#                 for check_cell in cell:
-#                     count += 1
-#                     if count == 4:
-#                         res = check_cell.text.strip().split(' ')[:1]
-#                         for check_res in res:
-#                             date_create.append(check_res)
-#                         count = 0
-#             error = 0
-#             for check_date in date_create:
-#                 if check_date != '09.08.2021':
-#                     error += 1
-#             if error >= 1:
-#                 logging.error('"Дата" filter working incorrect')
-#             else:
-#                 logging.info('"Дата" filter working correct')
-#
-#         except BaseException as ex:
-#             logging.error(f'Input "Дата" from filter "Заявки на удаление" - working incorrect. {ex}')
-#         else:
-#             logging.info(f'Input "Дата" from filter "Заявки на удаление" - working correct')
-#
-#         detailed_view = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion/WorkerDetails/201"]')))
-#         try:
-#             detailed_view.click()
-#         except BaseException as ex:
-#             logging.error(f'Detailed view of the application for deletion is working incorrect. {ex}')
-#         else:
-#             logging.info('Detailed view of the application for deletion is working correct')
-#     except BaseException as ex:
-#         logging.error(f'List item "На удаление" in dropdown "Заявки" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "На удаление" in dropdown "Заявки" - working correctly')
+
 #
 #     # Duplicate unit
 #     try:
