@@ -891,66 +891,45 @@ class TestApplicant:
         filter_number_docs(number_app=filter_number_application_vehicle,
                            count_column=4, number_inv=filter_number_invites_vehicle)
 
+    def test_applicant_value_page(self):
+        inv_values = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="/Applicant/ValueInvites"]')))
+        inv_values.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Приглашения ТМЦ':
+            assert True
+        else:
+            assert False
+
+        # Less than one page. Testing pagination impossible
+        # Filter only manual testing
+
+        not_actual_value = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//div[@isactual="false"]')))
+        not_actual_value.click()
+        download_doc()
+
+        actual_value = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//div[@isactual="true"]')))
+        actual_value.click()
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'Приглашения ТМЦ.csv':
+                assert True
+            else:
+                assert False
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения ТМЦ.csv'))
+
     def test_quit(self):
         DriverInitialize.driver.close()
         DriverInitialize.driver.quit()
         os.rmdir(DriverInitialize.stuff_path)
 
-#
-#     # Value Invites
-#     try:
-#         inv_values = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#             (By.XPATH, '//a[@href="/Applicant/ValueInvites"]')))
-#         try:
-#             inv_values.click()
-#         except BaseException as ex:
-#             logging.error(f'List item "ТМЦ" - working incorrect. {ex}')
-#         else:
-#             logging.info('List item "ТМЦ" - working correctly')
-#
-#         try:
-#             not_actual_value = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, '//div[@isactual="false"]')))
-#             not_actual_value.click()
-#         except BaseException as ex:
-#             logging.error(f'Tab "Погашенные" in list item "ТМЦ" - working incorrect. {ex}')
-#         else:
-#             logging.info('Tab "Погашенные" in list item "ТМЦ" - working correctly')
-#
-#         # # Pagination test
-#         # page_number = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#         #     (By.XPATH, '')))
-#         # if page_number:
-#         #     pagination_test(page_number)
-#         # else:
-#         #     logging.warning('Less than one page. Testing impossible')
-#         logging.warning('Less than one page. Testing pagination impossible')
-#
-#         # Filter test
-#         logging.warning('Filter only manual testing')
-#
-#         download_doc()
-#
-#         try:
-#             actual_value = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(
-#                 (By.XPATH, '//div[@isactual="true"]')))
-#             actual_value.click()
-#         except BaseException as ex:
-#             logging.error(f'Tab "Действующие" in list item "ТМЦ" - working incorrect. {ex}')
-#         else:
-#             logging.info('Tab "Действующие" in list item "ТМЦ" - working correctly')
-#
-#         download_doc()
-#
-#         for check_file in os.listdir(stuff_path):
-#             if check_file in 'Приглашения ТМЦ.csv':
-#                 logging.warning(f'Must be updated button "Excel" or type of file: "{check_file}"')
-#     except BaseException as ex:
-#         logging.error(f'List item "ТМЦ" in dropdown "Приглашения" - working incorrect. {ex}')
-#     else:
-#         logging.info('List item "ТМЦ" in dropdown "Приглашения" - working correctly')
-#     finally:
-#         os.remove(os.path.join(stuff_path, 'Приглашения ТМЦ.csv'))
 #
 #     # Print Invites
 #     try:
