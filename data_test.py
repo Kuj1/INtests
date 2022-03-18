@@ -120,9 +120,9 @@ owners_company_number = '890501001'
 owners_company_name = 'ООО "ЧОО "ИНТЕЛЛЕКТ"'
 contract_number = '1000343123'
 date_contract = '28.03.2022'
-expired_doc = 'href="/Applicant/WorkerDocuments?workerId=887"'
-delete_expired_doc = 'href="/Applicant/WorkerDocuments/Delete/1252?appid=0"'
-edit_expired_doc = 'href="/Applicant/WorkerDocuments/Edit/1248?appid=0"'
+expired_doc = 'href="/Applicant/WorkerDocuments?workerId=884"'
+delete_expired_doc = 'href="/Applicant/WorkerDocuments/Delete/1230?appid=0"'
+edit_expired_doc = 'href="/Applicant/WorkerDocuments/Edit/1226?appid=0"'
 
 
 # Workers filter dataset
