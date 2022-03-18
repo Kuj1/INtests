@@ -728,7 +728,7 @@ class DriverInitialize:
     options = webdriver.ChromeOptions()
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('start-maximized')
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     options.add_argument('--enable-javascript')
     download_pref = {'download.default_directory': stuff_path, "download.prompt_for_download": False}
     options.add_experimental_option("prefs", download_pref)
@@ -778,7 +778,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_inv_folder(self):
         enter_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#applicantInviteWrap"]')))
@@ -792,7 +791,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_inv_worker_page(self):
         click_inv_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/WorkerInvites']")))
@@ -824,7 +822,6 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения сотрудников.csv'))
 
-    @pytest.mark.skip
     def test_inv_pagination_worker_page(self):
         not_actual_inv_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -836,7 +833,6 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
-    @pytest.mark.skip
     def test_inv_filter_worker_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))
@@ -847,7 +843,6 @@ class TestApplicant:
         filter_for_units(org=filter_organization, name=filter_name_inv,
                          position=filter_position, date_birth=filter_birth, tab=True)
 
-    @pytest.mark.skip
     def test_inv_vehicle_page(self):
         inv_vehicles = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/VehicleInvites"]')))
@@ -879,7 +874,6 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения транспорта.csv'))
 
-    @pytest.mark.skip
     def test_inv_pagination_vehicle_page(self):
         not_actual_vehicles = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//div[@isactual="false"]')))
@@ -890,7 +884,6 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
-    @pytest.mark.skip
     def test_inv_filter_vehicle_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.ID, 'btnFilterDesktop')))
@@ -900,7 +893,6 @@ class TestApplicant:
         filter_number_docs(number_app=filter_number_application_vehicle,
                            count_column=4, number_inv=filter_number_invites_vehicle)
 
-    @pytest.mark.skip
     def test_inv_value_page(self):
         inv_values = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="/Applicant/ValueInvites"]')))
@@ -935,7 +927,6 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения ТМЦ.csv'))
 
-    @pytest.mark.skip
     def test_inv_print_inv_page(self):
         inv_print = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="/Applicant/PrintInvite/GetPdf"]')))
@@ -961,7 +952,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_pass_folder(self):
         passes_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                         (By.XPATH, "//a[@href='#applicantPassesWrap']")))
@@ -975,7 +965,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_pass_worker_page(self):
         click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/WorkerPasses']")))
@@ -1007,7 +996,6 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'WorkerPasses.csv'))
 
-    @pytest.mark.skip
     def test_pass_pagination_worker_page(self):
         not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -1019,7 +1007,6 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
-    @pytest.mark.skip
     def test_pass_filter_worker_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))
@@ -1031,7 +1018,6 @@ class TestApplicant:
                            number_pass=filter_number_pass_worker, end_date=filter_end_date_pass)
         # Input "Антитела" - manual testing only
 
-    @pytest.mark.skip
     def test_pass_vehicle_page(self):
         click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/VehiclePasses']")))
@@ -1063,7 +1049,6 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'VehiclePasses.csv'))
 
-    @pytest.mark.skip
     def test_pass_pagination_vehicle_page(self):
         not_actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -1074,7 +1059,6 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
-    @pytest.mark.skip
     def test_pass_filter_vehicle_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.ID, 'btnFilterDesktop')))
@@ -1084,7 +1068,6 @@ class TestApplicant:
         filter_number_docs(number_app=filter_number_application_vehicle, count_column=6,
                            number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass)
 
-    @pytest.mark.skip
     def test_pass_value_page(self):
         click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ValuePasses"]')))
@@ -1119,7 +1102,6 @@ class TestApplicant:
         # Less than one page. Testing pagination impossible
         # Filter only manual testing
 
-    @pytest.mark.skip
     def test_app_folder(self):
         app_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#applicantApplications"]')))
@@ -1133,7 +1115,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_app_application_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Applications"]')))
@@ -1157,14 +1138,12 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
 
-    @pytest.mark.skip
     def test_app_pagination_application_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                         (By.XPATH, '//a[@href="?page=2&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
-    @pytest.mark.skip
     def test_app_filter_application_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.ID, 'btnFilterMobile')))
@@ -1174,7 +1153,6 @@ class TestApplicant:
         filter_for_apps(type_application='ТМЦ')
         # Other filter input's should tested manually
 
-    @pytest.mark.skip
     def test_app_worker_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Workers"]')))
@@ -1198,14 +1176,12 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Workers.csv'))
 
-    @pytest.mark.skip
     def test_app_pagination_worker_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="?page=3&SortingColumn=FullName&SortingDirection=asc&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
-    @pytest.mark.skip
     def test_app_filter_worker_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.ID, 'btnFilterDesktop')))
@@ -1215,7 +1191,6 @@ class TestApplicant:
                          position=filter_position, link=True)
         filter_for_units_app(birth_d=filter_birth)
 
-    @pytest.mark.skip
     def test_app_vehicle_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Vehicles"]')))
@@ -1239,14 +1214,12 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Vehicles.csv'))
 
-    @pytest.mark.skip
     def test_app_pagination_vehicle_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=asc&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
-    @pytest.mark.skip
     def test_app_filter_vehicle_page(self):
 
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -1257,7 +1230,6 @@ class TestApplicant:
                              type_vehicle=filter_type_vehicle_app,
                              id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app)
 
-    @pytest.mark.skip
     def test_app_deletion_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion"]')))
@@ -1271,7 +1243,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_app_filter_deletion_page(self):
         first_request = 'Транспортное средство на удаление'
         second_request = 'Сотрудник на удаление'
@@ -1320,14 +1291,12 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_app_detailed_view_deletion_page(self):
         detailed_view = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable(
                 (By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion/WorkerDetails/201"]')))
         detailed_view.click()
 
-    @pytest.mark.skip
     def test_app_duplicate_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ApplicationsForDropDuplicate"]')))
@@ -1341,7 +1310,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_app_detailed_view_duplicate_page(self):
         choose_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable(
@@ -1374,7 +1342,6 @@ class TestApplicant:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
 
-    @pytest.mark.skip
     def test_app_positions_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ApplicationWorkerPositions"]')))
@@ -1388,7 +1355,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_app_creating_position_page(self):
         create_position = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable(
@@ -1400,7 +1366,6 @@ class TestApplicant:
                 (By.ID, 'position-values-button')))
         choose_position.click()
 
-    @pytest.mark.skip
     def test_app_pagination_creating_position_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[text()="5"]')))
@@ -1423,7 +1388,6 @@ class TestApplicant:
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[text()="1"]'))).click()
 
-    @pytest.mark.skip
     def test_app_add_position_creating_position_page(self):
         try_position = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//label[text()="Автоклавщик"]')))
@@ -1441,7 +1405,6 @@ class TestApplicant:
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Создать"]')))
         add_position.click()
 
-    @pytest.mark.skip
     def test_dict_folder(self):
         dict_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#applicantDictWrap"]')))
@@ -1455,7 +1418,6 @@ class TestApplicant:
         else:
             assert False
 
-    @pytest.mark.skip
     def test_dict_sub_comp_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/SubCompanies"]')))
@@ -1488,7 +1450,6 @@ class TestApplicant:
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Субподрядчики.csv'))
         # Creating Sub-companies should tested manually
 
-    @pytest.mark.skip
     def test_dict_pagination_comp_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="?page=2&MainCompanyId=1&IsActual=True"]')))
