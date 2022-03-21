@@ -1,8 +1,8 @@
 import os
 import time
-import logging
 import re
 import allure
+import shutil
 import pytest
 
 from selenium import webdriver
@@ -10,6 +10,7 @@ from selenium.webdriver import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
@@ -20,7 +21,8 @@ from data_test import filter_organization, filter_name_inv, filter_position, fil
 from data_test import filter_name_pass, filter_number_pass_worker, filter_end_date_pass, filter_type_vehicle, \
     filter_number_application_vehicle_pass, filter_number_pass_vehicle, \
     vehicle_id, filter_type_vehicle_app, filter_name_vehicle_app, main_company, date_from_app, date_to_app, \
-    expired_doc, delete_expired_doc, edit_expired_doc
+    expired_doc, delete_expired_doc, edit_expired_doc, delete_unit
+
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -77,7 +79,7 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
         if main_company in name_comp:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Генподрядчик" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         DriverInitialize.driver.execute_script('openFilterBlock(this);')
@@ -117,7 +119,7 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
             if error == 0:
                 assert True
             else:
-                assert False
+                assert False, 'Filter input "Вид заявки" work incorrect with type "Сотрудники"'
 
         elif type_application == 'Транспорт':
             error = 0
@@ -128,7 +130,7 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
             if error == 0:
                 assert True
             else:
-                assert False
+                assert False, 'Filter input "Вид заявки" work incorrect with type "Транспорт"'
 
         elif type_application == 'ТМЦ':
             error = 0
@@ -139,7 +141,7 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
             if error == 0:
                 assert True
             else:
-                assert False
+                assert False, 'Filter input "Вид заявки" work incorrect with type "ТМЦ"'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         DriverInitialize.driver.execute_script('openFilterBlock(this);')
@@ -164,7 +166,7 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
         if date_from_app == date[0]:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Дата подачи" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         DriverInitialize.driver.execute_script('openFilterBlock(this);')
@@ -179,7 +181,7 @@ def pagination_test(path_to_number):
     if path_to_number:
         assert True
     else:
-        assert False
+        assert 'Pagination work incorrect. Maybe there is only one page'
     path_to_number.click()
 
     prev_btn = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -187,7 +189,7 @@ def pagination_test(path_to_number):
     if prev_btn:
         assert True
     else:
-        assert False
+        assert False, 'Pagination work incorrect. Button "Пред." is missing'
     prev_btn.click()
 
     next_btn = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -195,7 +197,7 @@ def pagination_test(path_to_number):
     if next_btn:
         assert True
     else:
-        assert False
+        assert False, 'Pagination work incorrect. Button "След." is missing'
     next_btn.click()
 
 
@@ -246,9 +248,9 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
                 for check_res in res:
                     units.append(check_res)
         if len(units) != 10:
-            logging.error('"Организация" filter working incorrect')
+            assert False, 'Filter input "Организация" work incorrect'
         elif len(units) == 10:
-            logging.info('"Организация" filter working correct')
+            assert True
 
         DriverInitialize.driver.execute_script('resetFilter();')
         if tab:
@@ -269,9 +271,9 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
             cell = soup.find('strong', string=re.compile(f'{name}')).text.strip()
 
         if name in cell:
-            logging.info('"ФИО" filter working correct')
+            assert True
         else:
-            logging.error('"ФИО" filter working incorrect')
+            assert False, 'Filter input "ФИО" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         if tab:
@@ -306,9 +308,9 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
                 error += 1
 
         if error == 0:
-            logging.info('"Должность" filter working correct')
+            assert True
         elif error > 0:
-            logging.error('"Должность" filter working incorrect')
+            assert False, 'Filter input "Должность" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         if tab:
@@ -335,9 +337,9 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
         date_birthday = table_req.find('small', text=re.compile('03.02.2004')).text.strip()
 
         if date_birth == date_birthday:
-            logging.info('"Дата рождения" filter working correct')
+            assert True
         else:
-            logging.error('"Дата рождения" filter working correct')
+            assert False, 'Filter input "Дата рождения" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         if tab:
@@ -371,9 +373,9 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
             else:
                 error += 1
         if error == 0:
-            logging.info('"Тип ТС" filter working correct')
+            assert True
         elif error > 0:
-            logging.error('"Тип ТС" filter working incorrect')
+            assert False, 'Filter input "Тип ТС" work incorrect'
 
 
 def filter_number_docs(number_app=None, count_column=None, number_inv=None, number_pass=None, end_date=None):
@@ -410,7 +412,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         if num_inv == number_inv:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Номер приглашения" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -441,7 +443,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         if num_app == number_app:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Номер пропуска" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -472,7 +474,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         if num_pass == number_pass:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Номер заявки" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -516,7 +518,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         if error == 0:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Дата окончания" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -553,7 +555,7 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
     if birth_d == date_birthday:
         assert True
     else:
-        assert False
+        assert False, 'Filter input "Дата рождения" work incorrect'
 
     DriverInitialize.driver.execute_script('resetFilter();')
     DriverInitialize.driver.execute_script('openFilterBlock(this);')
@@ -586,7 +588,7 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
         if error == 0:
             assert True
         elif error > 0:
-            assert False
+            assert False, 'Filter input "Тип ТС" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         DriverInitialize.driver.execute_script('openFilterBlock(this);')
@@ -617,7 +619,7 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
         if id_v == id_vehicle:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Код ТС" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         DriverInitialize.driver.execute_script('openFilterBlock(this);')
@@ -634,7 +636,7 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
         if name_vehicle in cell:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Марка" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         DriverInitialize.driver.execute_script('openFilterBlock(this);')
@@ -681,8 +683,7 @@ def filter_for_deletion(request):
         if error == 0:
             assert True
         else:
-            logging.error('Something wrong with input "Тип запроса" at this filter')
-            assert False
+            assert False, 'Filter input "Тип запроса" work incorrect'
 
     elif request == 'Транспортное средство на удаление':
         error = 0
@@ -693,8 +694,7 @@ def filter_for_deletion(request):
         if error == 1:
             assert True
         else:
-            logging.error('Something wrong with input "Тип запроса" at this filter')
-            assert False
+            assert False, 'Filter input "Тип запроса" work incorrect'
 
 
 def input_elem(elem, key, key_bind):
@@ -742,7 +742,9 @@ class DriverInitialize:
     timeout = 10
 
 
+@allure.feature('Test for role "Заявитель"')
 class TestApplicant:
+    @allure.title('Test authorization')
     def test_auth(self):
         DriverInitialize.driver.get(DriverInitialize.URL)
 
@@ -766,6 +768,7 @@ class TestApplicant:
         else:
             assert False
 
+    @allure.title('Test "Заявитель" folder')
     def test_applicant_folder(self):
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#applicantWrap"]')))
@@ -776,8 +779,9 @@ class TestApplicant:
         if check_title:
             assert True
         else:
-            assert False
+            assert False, 'Impossible enter in "Заявитель" folder'
 
+    @allure.title('Test "Приглашения" folder')
     def test_inv_folder(self):
         enter_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#applicantInviteWrap"]')))
@@ -789,8 +793,9 @@ class TestApplicant:
         if check_title:
             assert True
         else:
-            assert False
+            assert False, 'Impossible enter in "Приглашения" folder'
 
+    @allure.title('Test page "Сотрудники" from "Приглашения"')
     def test_inv_worker_page(self):
         click_inv_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/WorkerInvites']")))
@@ -802,7 +807,7 @@ class TestApplicant:
         if name_page == 'Приглашения сотрудников':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Сотрудники" page. Not expected page, or something else'
 
         not_actual_inv_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -818,10 +823,11 @@ class TestApplicant:
             if check_file == 'Приглашения сотрудников.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения сотрудников.csv'))
 
+    @allure.title('Test pagination on page "Сотрудники" from "Приглашения"')
     def test_inv_pagination_worker_page(self):
         not_actual_inv_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -833,6 +839,7 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test filter on page "Сотрудники" from "Приглашения"')
     def test_inv_filter_worker_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))
@@ -843,6 +850,7 @@ class TestApplicant:
         filter_for_units(org=filter_organization, name=filter_name_inv,
                          position=filter_position, date_birth=filter_birth, tab=True)
 
+    @allure.title('Test page "Транспорт" from "Приглашения"')
     def test_inv_vehicle_page(self):
         inv_vehicles = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/VehicleInvites"]')))
@@ -854,7 +862,7 @@ class TestApplicant:
         if name_page == 'Приглашения транспорта':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Транспорт" page. Not expected page, or something else'
 
         not_actual_vehicles = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//div[@isactual="false"]')))
@@ -870,10 +878,11 @@ class TestApplicant:
             if check_file == 'Приглашения транспорта.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения транспорта.csv'))
 
+    @allure.title('Test pagination on page "Транспорт" from "Приглашения"')
     def test_inv_pagination_vehicle_page(self):
         not_actual_vehicles = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//div[@isactual="false"]')))
@@ -884,6 +893,7 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test filter on page "Транспорт" from "Приглашения"')
     def test_inv_filter_vehicle_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.ID, 'btnFilterDesktop')))
@@ -893,6 +903,7 @@ class TestApplicant:
         filter_number_docs(number_app=filter_number_application_vehicle,
                            count_column=4, number_inv=filter_number_invites_vehicle)
 
+    @allure.title('Test page "ТМЦ" from "Приглашения"')
     def test_inv_value_page(self):
         inv_values = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="/Applicant/ValueInvites"]')))
@@ -904,7 +915,7 @@ class TestApplicant:
         if name_page == 'Приглашения ТМЦ':
             assert True
         else:
-            assert False
+            assert False, 'Error with "ТМЦ" page. Not expected page, or something else'
 
         # Less than one page. Testing pagination impossible
         # Filter only manual testing
@@ -923,10 +934,11 @@ class TestApplicant:
             if check_file == 'Приглашения ТМЦ.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Приглашения ТМЦ.csv'))
 
+    @allure.title('Test page "Печать приглашений" from "Приглашения"')
     def test_inv_print_inv_page(self):
         inv_print = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="/Applicant/PrintInvite/GetPdf"]')))
@@ -940,7 +952,7 @@ class TestApplicant:
                 (By.ID, 'ApplicationId-error'))):
             assert True
         else:
-            assert False
+            assert False, 'Must be raised error, but it\'s not'
 
         download_inv_pdf = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Скачать"]')))
@@ -950,8 +962,9 @@ class TestApplicant:
                 (By.CLASS_NAME, 'validation-summary-errors'))):
             assert True
         else:
-            assert False
+            assert False, 'Must be raised error, but it\'s not'
 
+    @allure.title('Test "Пропуска" folder')
     def test_pass_folder(self):
         passes_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                         (By.XPATH, "//a[@href='#applicantPassesWrap']")))
@@ -963,8 +976,9 @@ class TestApplicant:
         if check_title:
             assert True
         else:
-            assert False
+            assert False, 'Impossible enter in "Пропуска" folder'
 
+    @allure.title('Test page "Сотрудники" from "Пропуска"')
     def test_pass_worker_page(self):
         click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/WorkerPasses']")))
@@ -976,7 +990,7 @@ class TestApplicant:
         if name_page == 'Пропуска сотрудников':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Сотрудники" page. Not expected page, or something else'
 
         not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -992,10 +1006,11 @@ class TestApplicant:
             if check_file == 'WorkerPasses.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'WorkerPasses.csv'))
 
+    @allure.title('Test pagination on page "Сотрудники" from "Пропуска"')
     def test_pass_pagination_worker_page(self):
         not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -1007,6 +1022,7 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test filter on page "Сотрудники" from "Пропуска"')
     def test_pass_filter_worker_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))
@@ -1018,6 +1034,7 @@ class TestApplicant:
                            number_pass=filter_number_pass_worker, end_date=filter_end_date_pass)
         # Input "Антитела" - manual testing only
 
+    @allure.title('Test page "Транспорт" from "Пропуска"')
     def test_pass_vehicle_page(self):
         click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//a[@href='/Applicant/VehiclePasses']")))
@@ -1029,7 +1046,7 @@ class TestApplicant:
         if name_page == 'Пропуска транспорта':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Транспорт" page. Not expected page, or something else'
 
         not_actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -1045,10 +1062,11 @@ class TestApplicant:
             if check_file == 'VehiclePasses.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'VehiclePasses.csv'))
 
+    @allure.title('Test pagination on page "Транспорт" from "Пропуска"')
     def test_pass_pagination_vehicle_page(self):
         not_actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -1059,15 +1077,19 @@ class TestApplicant:
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test filter on page "Транспорт" from "Пропуска"')
     def test_pass_filter_vehicle_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.ID, 'btnFilterDesktop')))
         open_filter.click()
+        try:
+            filter_for_units(type_vehicle=filter_type_vehicle)
+            filter_number_docs(number_app=filter_number_application_vehicle, count_column=6,
+                               number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass)
+        except TimeoutException:
+            assert False, 'Something goes wrong. Maybe filter input "Тип ТС" is required, but it shouldn\'t'
 
-        filter_for_units(type_vehicle=filter_type_vehicle)
-        filter_number_docs(number_app=filter_number_application_vehicle, count_column=6,
-                           number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass)
-
+    @allure.title('Test page "ТМЦ" from "Пропуска"')
     def test_pass_value_page(self):
         click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ValuePasses"]')))
@@ -1079,7 +1101,7 @@ class TestApplicant:
         if name_page == 'Пропуска ТМЦ':
             assert True
         else:
-            assert False
+            assert False, 'Error with "ТМЦ" page. Not expected page, or something else'
 
         not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -1095,13 +1117,14 @@ class TestApplicant:
             if check_file == 'ValuePasses.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'ValuePasses.csv'))
 
         # Less than one page. Testing pagination impossible
         # Filter only manual testing
 
+    @allure.title('Test "Заявки" folder')
     def test_app_folder(self):
         app_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#applicantApplications"]')))
@@ -1113,8 +1136,9 @@ class TestApplicant:
         if check_title:
             assert True
         else:
-            assert False
+            assert False, 'Impossible enter in "Заявки" folder'
 
+    @allure.title('Test page "Заявки" from "Заявки"')
     def test_app_application_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Applications"]')))
@@ -1126,7 +1150,7 @@ class TestApplicant:
         if name_page == 'Заявки':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Заявки" page. Not expected page, or something else'
 
         download_doc()
 
@@ -1134,16 +1158,18 @@ class TestApplicant:
             if check_file == 'Applications.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
 
+    @allure.title('Test pagination on page "Заявки" from "Заявки"')
     def test_app_pagination_application_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                         (By.XPATH, '//a[@href="?page=2&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test filter on page "Заявки" from "Заявки"')
     def test_app_filter_application_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.ID, 'btnFilterMobile')))
@@ -1153,6 +1179,7 @@ class TestApplicant:
         filter_for_apps(type_application='ТМЦ')
         # Other filter input's should tested manually
 
+    @allure.title('Test page "Сотрудники" from "Заявки"')
     def test_app_worker_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Workers"]')))
@@ -1164,7 +1191,7 @@ class TestApplicant:
         if name_page == 'Справочник сотрудников':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Сотрудники" page. Not expected page, or something else'
 
         download_doc()
 
@@ -1172,16 +1199,18 @@ class TestApplicant:
             if check_file == 'Workers.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Workers.csv'))
 
+    @allure.title('Test pagination on page "Сотрудники" from "Заявки"')
     def test_app_pagination_worker_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="?page=3&SortingColumn=FullName&SortingDirection=asc&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test filter on page "Сотрудники" from "Заявки"')
     def test_app_filter_worker_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.ID, 'btnFilterDesktop')))
@@ -1191,6 +1220,7 @@ class TestApplicant:
                          position=filter_position, link=True)
         filter_for_units_app(birth_d=filter_birth)
 
+    @allure.title('Test page "Транспорт" from "Заявки"')
     def test_app_vehicle_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/Vehicles"]')))
@@ -1202,7 +1232,7 @@ class TestApplicant:
         if name_page == 'Справочник транспортных средств':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Транспорт" page. Not expected page, or something else'
 
         download_doc()
 
@@ -1210,26 +1240,31 @@ class TestApplicant:
             if check_file == 'Vehicles.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Vehicles.csv'))
 
+    @allure.title('Test pagination on page "Транспорт" from "Заявки"')
     def test_app_pagination_vehicle_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=asc&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test filter on page "Транспорт" from "Заявки"')
     def test_app_filter_vehicle_page(self):
-
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.ID, 'btnFilterDesktop')))
         open_filter.click()
-        filter_for_units(org=filter_organization, link=True)
-        filter_for_units_app(birth_d=filter_datepick,
-                             type_vehicle=filter_type_vehicle_app,
-                             id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app)
+        try:
+            filter_for_units(org=filter_organization, link=True)
+            filter_for_units_app(birth_d=filter_datepick,
+                                 type_vehicle=filter_type_vehicle_app,
+                                 id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app)
+        except TimeoutException:
+            assert False, 'Something goes wrong. Maybe filter input "Тип ТС" is required, but it shouldn\'t'
 
+    @allure.title('Test page "На удаление" from "Заявки"')
     def test_app_deletion_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion"]')))
@@ -1241,8 +1276,9 @@ class TestApplicant:
         if name_page == 'Заявки на удаление':
             assert True
         else:
-            assert False
+            assert False, 'Error with "На удаление" page. Not expected page, or something else'
 
+    @allure.title('Test filter on page "На удаление" from "Заявки"')
     def test_app_filter_deletion_page(self):
         first_request = 'Транспортное средство на удаление'
         second_request = 'Сотрудник на удаление'
@@ -1289,14 +1325,19 @@ class TestApplicant:
         if error == 0:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Дата" work incorrect'
 
+    @allure.title('Test detailed view on page "На удаление" from "Заявки"')
     def test_app_detailed_view_deletion_page(self):
-        detailed_view = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable(
-                (By.XPATH, '//a[@href="/Applicant/ApplicationsForDeletion/WorkerDetails/201"]')))
-        detailed_view.click()
+        try:
+            detailed_view = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+                until(EC.element_to_be_clickable(
+                    (By.XPATH, f'//a[@href="{delete_unit}"]')))
+            detailed_view.click()
+        except TimeoutException:
+            assert False, 'Need to update data from dataset: <delete_unit>'
 
+    @allure.title('Test page "Дубли данных" from "Заявки"')
     def test_app_duplicate_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ApplicationsForDropDuplicate"]')))
@@ -1308,8 +1349,9 @@ class TestApplicant:
         if name_page == 'Дубли данных':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Дубли данных" page. Not expected page, or something else'
 
+    @allure.title('Test detailed view on page "Дубли данных" from "Заявки"')
     def test_app_detailed_view_duplicate_page(self):
         choose_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable(
@@ -1325,7 +1367,7 @@ class TestApplicant:
             if check_file == 'Applications.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
 
@@ -1338,10 +1380,11 @@ class TestApplicant:
             if check_file == 'Applications.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
 
+    @allure.title('Test page "Должности" from "Заявки"')
     def test_app_positions_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ApplicationWorkerPositions"]')))
@@ -1353,8 +1396,9 @@ class TestApplicant:
         if name_page == 'Переписка о создании должностей':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Должности" page. Not expected page, or something else'
 
+    @allure.title('Test creating position page, on page "Должности" from "Заявки"')
     def test_app_creating_position_page(self):
         create_position = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable(
@@ -1366,6 +1410,7 @@ class TestApplicant:
                 (By.ID, 'position-values-button')))
         choose_position.click()
 
+    @allure.title('Test pagination on creating position, on page "Должности" from "Заявки"')
     def test_app_pagination_creating_position_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[text()="5"]')))
@@ -1388,6 +1433,7 @@ class TestApplicant:
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[text()="1"]'))).click()
 
+    @allure.title('Test add position on creating position, on page "Должности" from "Заявки"')
     def test_app_add_position_creating_position_page(self):
         try_position = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//label[text()="Автоклавщик"]')))
@@ -1405,6 +1451,7 @@ class TestApplicant:
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Создать"]')))
         add_position.click()
 
+    @allure.title('Test "Справочники" folder')
     def test_dict_folder(self):
         dict_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#applicantDictWrap"]')))
@@ -1416,8 +1463,9 @@ class TestApplicant:
         if check_title:
             assert True
         else:
-            assert False
+            assert False, 'Impossible enter in "Справочники" folder'
 
+    @allure.title('Test page "Субподрядчики" from "Справочники"')
     def test_dict_sub_comp_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/SubCompanies"]')))
@@ -1429,7 +1477,7 @@ class TestApplicant:
         if name_page == 'Субподрядчики':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Субподрядчики" page. Not expected page, or something else'
 
         not_actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
@@ -1445,17 +1493,19 @@ class TestApplicant:
             if check_file == 'Субподрядчики.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Субподрядчики.csv'))
         # Creating Sub-companies should tested manually
 
+    @allure.title('Test pagination on page "Субподрядчики" from "Справочники"')
     def test_dict_pagination_comp_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="?page=2&MainCompanyId=1&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test "Отчеты" folder')
     def test_reports_folder(self):
         reports_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#applicantReportsWrap"]')))
@@ -1467,8 +1517,9 @@ class TestApplicant:
         if check_title:
             assert True
         else:
-            assert False
+            assert False, 'Impossible enter in "Отчеты" folder'
 
+    @allure.title('Test page "Истекающие документы" from "Отчеты"')
     def test_reports_expired_page(self):
         click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Applicant/ExpiredDocs"]')))
@@ -1480,7 +1531,7 @@ class TestApplicant:
         if name_page == 'Истекающие документы':
             assert True
         else:
-            assert False
+            assert False, 'Error with "Истекающие документы" page. Not expected page, or something else'
 
         download_doc()
 
@@ -1488,16 +1539,18 @@ class TestApplicant:
             if check_file == 'ExpiredDocs.csv':
                 assert True
             else:
-                assert False
+                assert False, 'Downloaded wrong file'
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'ExpiredDocs.csv'))
 
+    @allure.title('Test pagination on page "Истекающие документы" from "Отчеты"')
     def test_reports_pagination_expired_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="?page=2&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
         if page_number:
             pagination_test(page_number)
 
+    @allure.title('Test filter on page "Истекающие документы" from "Отчеты"')
     def test_reports_filter_expired_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))
@@ -1535,7 +1588,7 @@ class TestApplicant:
         if error == 0:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Тип" work incorrect'
 
         reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
@@ -1569,7 +1622,7 @@ class TestApplicant:
         if error == 0:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Наименование" work incorrect'
 
         reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
@@ -1602,7 +1655,7 @@ class TestApplicant:
         if error == 0:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Документ" work incorrect'
 
         reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
@@ -1645,12 +1698,13 @@ class TestApplicant:
         if error == 0:
             assert True
         else:
-            assert False
+            assert False, 'Filter input "Дата окончания" work incorrect'
 
         reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
         reset_filter.click()
 
+    @allure.title('Test detailed view on page "Истекающие документы" from "Отчеты"')
     def test_reports_detailed_view_expired_page(self):
         link_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.XPATH, f'//a[@{expired_doc}]')))
@@ -1664,19 +1718,27 @@ class TestApplicant:
             (By.XPATH, '//a[@href="#actualDocs"]')))
         actual.click()
 
+    @allure.title('Test delete doc on detailed view, on page "Истекающие документы" from "Отчеты"')
     def test_reports_delete_detailed_view_expired_page(self):
-        delete_archive_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, f'//a[@{delete_expired_doc}]')))
-        delete_archive_doc.click()
+        try:
+            delete_archive_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+                until(EC.element_to_be_clickable((By.XPATH, f'//a[@{delete_expired_doc}]')))
+            delete_archive_doc.click()
+        except TimeoutException:
+            assert False, 'Something goes wrong. Maybe need to update data from dataset: <delete_expired_doc>'
 
         confirm_delete = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Удалить"]')))
         confirm_delete.click()
 
+    @allure.title('Test edit doc on detailed view, on page "Истекающие документы" from "Отчеты"')
     def test_reports_edit_detailed_view_expired_page(self):
-        edit_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, f'//a[@{edit_expired_doc}]')))
-        edit_doc.click()
+        try:
+            edit_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, f'//a[@{edit_expired_doc}]')))
+            edit_doc.click()
+        except TimeoutException:
+            assert False, 'Need to update data from dataset: <edit_expired_doc>'
 
         edit_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'Document_Number')))
@@ -1686,7 +1748,9 @@ class TestApplicant:
             (By.XPATH, '//input[@value="Сохранить"]')))
         submit_btn.click()
 
+    @allure.title('Close and Quit')
     def test_quit(self):
         DriverInitialize.driver.close()
         DriverInitialize.driver.quit()
-        os.rmdir(DriverInitialize.stuff_path)
+        # os.rmdir(DriverInitialize.stuff_path)
+        shutil.rmtree(DriverInitialize.stuff_path)
