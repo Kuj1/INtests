@@ -137,6 +137,7 @@ filter_number_application_worker = '527'
 filter_number_application_value = '35'
 filter_birth = '03.02.2004'
 filter_end_date_pass = '28.02.2022'
+delete_unit = '/Applicant/ApplicationsForDeletion/WorkerDetails/201'
 
 # Vehicles filter dataset
 filter_datepick = '04.02.2020'
