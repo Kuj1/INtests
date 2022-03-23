@@ -18,8 +18,8 @@ from bs4 import BeautifulSoup
 from data_test import filter_organization, filter_name_inv, filter_position, filter_datepick, \
     filter_number_invites_worker, filter_number_application_worker, \
     filter_number_invites_vehicle, filter_number_application_vehicle, filter_birth
-from data_test import filter_name_pass, filter_number_pass_worker, filter_end_date_pass, filter_type_vehicle, \
-    filter_number_application_vehicle_pass, filter_number_pass_vehicle, \
+from data_test import filter_name_pass, filter_number_pass_worker, filter_end_date_pass, filter_type_vehicle,\
+    filter_number_pass_vehicle, \
     vehicle_id, filter_type_vehicle_app, filter_name_vehicle_app, main_company, date_from_app, date_to_app, \
     expired_doc, delete_expired_doc, edit_expired_doc, delete_unit
 
@@ -742,6 +742,7 @@ class DriverInitialize:
     timeout = 10
 
 
+@pytest.mark.skip()
 @allure.feature('Test for role "Заявитель"')
 class TestApplicant:
     @allure.title('Test authorization')
@@ -1752,5 +1753,4 @@ class TestApplicant:
     def test_quit(self):
         DriverInitialize.driver.close()
         DriverInitialize.driver.quit()
-        # os.rmdir(DriverInitialize.stuff_path)
         shutil.rmtree(DriverInitialize.stuff_path)
