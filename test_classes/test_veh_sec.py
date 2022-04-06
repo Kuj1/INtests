@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-from data_test import filter_end_date_pass, filter_number_application_vehicle, filter_type_vehicle, \
+from data_test import filter_end_date_pass, filter_number_application, filter_type_vehicle, \
     filter_number_pass_vehicle, main_company, date_from_app_v_s, date_to_app_v_s, filter_organization, filter_datepick,\
     filter_type_vehicle_app, vehicle_id, filter_name_vehicle_app
 
@@ -155,9 +155,13 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
         filter_enter.click()
 
-        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        table_req = soup.find('table', class_="application-table table table-hover table-striped")
-        date = table_req.find_all('tr')[1].find_all('td')[-2].text.strip().split(' ')
+        try:
+            soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+            table_req = soup.find('table', class_="application-table table table-hover table-striped")
+            date = table_req.find_all('tr')[1].find_all('td')[-2].text.strip().split(' ')
+        except IndexError:
+            assert False, 'need to update data from dataset: ' \
+                          '<date_from_app_v_s> & <date_to_app_v_s>'
         if date_from_app_v_s == date[0]:
             assert True
         else:
@@ -237,15 +241,21 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
         table_req = soup.find('table', class_="table-striped")
         rows = table_req.find_all('tr')
         cells = [row.find_all('span', {"title": re.compile(r'АО "ПРЕМЬЕРСТРОЙ"')}) for row in rows]
-        units = list()
+        comps = list()
         for cell in cells:
             for check_cell in cell:
                 res = check_cell.text.strip().split('</td>')
                 for check_res in res:
-                    units.append(check_res)
-        if len(units) != 10:
+                    comps.append(check_res)
+        error = 0
+        for check_comp in comps:
+            if check_comp == org:
+                continue
+            else:
+                error += 1
+        if error > 0:
             assert False, 'Filter input "Организация" work incorrect'
-        elif len(units) == 10:
+        elif error == 0:
             assert True
 
         DriverInitialize.driver.execute_script('resetFilter();')
@@ -373,6 +383,12 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
         elif error > 0:
             assert False, 'Filter input "Тип ТС" work incorrect'
 
+        DriverInitialize.driver.execute_script('resetFilter();')
+        if tab:
+            WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, "//div[@isactual='true']"))).click()
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
+
 
 def filter_number_docs(number_app=None, count_column=None, number_inv=None, number_pass=None, end_date=None):
     """
@@ -424,10 +440,10 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
             (By.XPATH, '//input[@value="Применить"]'))).click()
 
         soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        table_req = soup.find('table', class_="table-striped")
+        table_req = soup.find('div', class_="div-table")
         rows = table_req.find_all('tr')
         cells = [row.find_all('td') for row in rows]
-        num_app = ''
+        num_app = list()
         for cell in cells:
             count = 0
             for check_cell in cell:
@@ -435,11 +451,17 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
                 if count == count_column:
                     res = check_cell.text.strip().split(' ')
                     for check_res in res:
-                        num_app = ''.join(check_res)
-        if num_app == number_app:
+                        num_app.append(check_res)
+        error = 0
+        for check_app in num_app:
+            if check_app == number_app:
+                continue
+            else:
+                error += 1
+        if error == 0:
             assert True
-        else:
-            assert False, 'Filter input "Номер заявки" work incorrect'
+        elif error > 0:
+            assert False, 'Filter input "Номер заявки" work incorrect. Maybe need to update <filter_number_application>'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -449,7 +471,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
     # Filter number pass
     if number_pass:
         enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.ID, 'BarCode')))
+            until(EC.element_to_be_clickable((By.ID, 'PassId')))
         enter_number_inv.send_keys(number_pass, Keys.ENTER)
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//input[@value="Применить"]'))).click()
@@ -724,7 +746,7 @@ class DriverInitialize:
     options = webdriver.ChromeOptions()
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('start-maximized')
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     options.add_argument('--enable-javascript')
     download_pref = {'download.default_directory': stuff_path, "download.prompt_for_download": False}
     options.add_experimental_option("prefs", download_pref)
@@ -738,7 +760,7 @@ class DriverInitialize:
     timeout = 10
 
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 @allure.feature('Test for role "Трансп. безопасность"')
 class TestVehSec:
     @allure.title('Test authorization')
@@ -844,10 +866,10 @@ class TestVehSec:
         open_filter.click()
         try:
             filter_for_units(type_vehicle=filter_type_vehicle)
-            filter_number_docs(number_app=filter_number_application_vehicle, count_column=6,
+            filter_number_docs(number_app=filter_number_application, count_column=6,
                                number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass)
         except TimeoutException:
-            assert False, 'Something goes wrong. Maybe filter input "Тип ТС" is required, but it shouldn\'t'
+            assert False, 'Something goes wrong. With filter inputs'
 
     @allure.title('Test "Заявки" folder')
     def test_app_folder(self):

@@ -17,12 +17,11 @@ from bs4 import BeautifulSoup
 
 from data_test import filter_organization, filter_name_inv, filter_position, filter_datepick, \
     filter_number_invites_worker, filter_number_application_worker, \
-    filter_number_invites_vehicle, filter_number_application_vehicle, filter_birth
+    filter_number_invites_vehicle, filter_number_application_vehicle, filter_birth, filter_birth_for_apps
 from data_test import filter_name_pass, filter_number_pass_worker, filter_end_date_pass, filter_type_vehicle,\
     filter_number_pass_vehicle, \
     vehicle_id, filter_type_vehicle_app, filter_name_vehicle_app, main_company, date_from_app, date_to_app, \
     expired_doc, delete_expired_doc, edit_expired_doc, delete_unit
-
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -378,7 +377,8 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
             assert False, 'Filter input "Тип ТС" work incorrect'
 
 
-def filter_number_docs(number_app=None, count_column=None, number_inv=None, number_pass=None, end_date=None):
+def filter_number_docs(number_app=None, count_column=None, number_inv=None, number_pass=None, end_date=None,
+                       for_transport_pass=False):
     """
     Test common filter input of docs
     :param number_app: number of application
@@ -386,6 +386,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
     :param number_inv: number of invites
     :param number_pass: number of pass
     :param end_date: date of the end of pass
+    :param for_transport_pass: if current folder is Passes
     :return:
     """
     # Filter number invites
@@ -443,7 +444,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         if num_app == number_app:
             assert True
         else:
-            assert False, 'Filter input "Номер пропуска" work incorrect'
+            assert False, 'Filter input "Номер заявки" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -452,9 +453,14 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
 
     # Filter number pass
     if number_pass:
-        enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.ID, 'BarCode')))
-        enter_number_inv.send_keys(number_pass, Keys.ENTER)
+        if for_transport_pass:
+            enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+                until(EC.element_to_be_clickable((By.ID, 'PassId')))
+            enter_number_inv.send_keys(number_pass, Keys.ENTER)
+        else:
+            enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+                until(EC.element_to_be_clickable((By.ID, 'BarCode')))
+            enter_number_inv.send_keys(number_pass, Keys.ENTER)
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//input[@value="Применить"]'))).click()
 
@@ -474,7 +480,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         if num_pass == number_pass:
             assert True
         else:
-            assert False, 'Filter input "Номер заявки" work incorrect'
+            assert False, 'Filter input "Номер пропуска" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -526,13 +532,14 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         DriverInitialize.driver.execute_script('openFilterBlock(this);')
 
 
-def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_vehicle=None):
+def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_vehicle=None, vehicle=False):
     """
     SPECIAL for units from tab application
     :param birth_d: birth day date from app
     :param type_vehicle: type of vehicle from app
     :param id_vehicle: id of vehicle from app
     :param name_vehicle: name of vehicle from app
+    :param vehicle: if input filter on vehicle page
     :return:
     """
     # Filter date
@@ -550,7 +557,11 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
 
     soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
     table_req = soup.find('table', class_="table-striped")
-    date_birthday = table_req.find(text=re.compile(f'{birth_d}')).text.strip()
+    if vehicle:
+        date_birthday = table_req.find(text=re.compile(f'{birth_d}')).text.strip()
+    else:
+        date_birthday = table_req.find('small', text=re.compile(f'{birth_d}')).text.strip()
+    # date_birthday =
 
     if birth_d == date_birthday:
         assert True
@@ -653,12 +664,22 @@ def filter_for_deletion(request):
     open_filter.click()
 
     type_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-        (By.XPATH, '//button[@data-id="AppType"]')))
+        (By.CLASS_NAME, 'filter-option'))).send_keys(request)
     type_request.click()
 
-    change_type_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-        until(EC.element_to_be_clickable((By.XPATH, './/div/input[@type="text"]')))
-    change_type_request.send_keys(request, Keys.ENTER)
+    time.sleep(1)
+
+    # Error here
+    # changed_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+    #     (By.CLASS_NAME, 'form-control')))
+    # WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+    #     until(EC.element_to_be_clickable((By.XPATH, '//input[@type="text"]'))).send_keys(request)
+
+    time.sleep(1)
+
+    btn_submit = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        until(EC.element_to_be_clickable((By.XPATH, '//input[@type="submit"]')))
+    btn_submit.click()
 
     filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
         (By.XPATH, '//input[@value="Применить"]')))
@@ -742,7 +763,7 @@ class DriverInitialize:
     timeout = 10
 
 
-@pytest.mark.skip()
+# @pytest.mark.skip()
 @allure.feature('Test for role "Заявитель"')
 class TestApplicant:
     @allure.title('Test authorization')
@@ -1080,15 +1101,23 @@ class TestApplicant:
 
     @allure.title('Test filter on page "Транспорт" from "Пропуска"')
     def test_pass_filter_vehicle_page(self):
+        not_actual = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                    (By.XPATH, '//div[@isactual="false"]')))
+        not_actual.click()
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
                     (By.ID, 'btnFilterDesktop')))
         open_filter.click()
         try:
             filter_for_units(type_vehicle=filter_type_vehicle)
+            DriverInitialize.driver.execute_script('resetFilter();')
+            WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, "//div[@isactual='false']"))).click()
+            DriverInitialize.driver.execute_script('openFilterBlock(this);')
             filter_number_docs(number_app=filter_number_application_vehicle, count_column=6,
-                               number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass)
+                               number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass,
+                               for_transport_pass=True)
         except TimeoutException:
-            assert False, 'Something goes wrong. Maybe filter input "Тип ТС" is required, but it shouldn\'t'
+            assert False, 'Something goes wrong.'
 
     @allure.title('Test page "ТМЦ" from "Пропуска"')
     def test_pass_value_page(self):
@@ -1219,7 +1248,7 @@ class TestApplicant:
 
         filter_for_units(org=filter_organization, name=filter_name_pass,
                          position=filter_position, link=True)
-        filter_for_units_app(birth_d=filter_birth)
+        filter_for_units_app(birth_d=filter_birth_for_apps)
 
     @allure.title('Test page "Транспорт" from "Заявки"')
     def test_app_vehicle_page(self):
@@ -1228,7 +1257,7 @@ class TestApplicant:
         click_app_li.click()
 
         soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+        name_page = soup.find('span', class_='filter-title').text.strip()
 
         if name_page == 'Справочник транспортных средств':
             assert True
@@ -1261,7 +1290,7 @@ class TestApplicant:
             filter_for_units(org=filter_organization, link=True)
             filter_for_units_app(birth_d=filter_datepick,
                                  type_vehicle=filter_type_vehicle_app,
-                                 id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app)
+                                 id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app, vehicle=True)
         except TimeoutException:
             assert False, 'Something goes wrong. Maybe filter input "Тип ТС" is required, but it shouldn\'t'
 
@@ -1707,9 +1736,12 @@ class TestApplicant:
 
     @allure.title('Test detailed view on page "Истекающие документы" from "Отчеты"')
     def test_reports_detailed_view_expired_page(self):
-        link_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-                    (By.XPATH, f'//a[@{expired_doc}]')))
-        link_doc.click()
+        try:
+            link_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, f'//a[@{expired_doc}]')))
+            link_doc.click()
+        except TimeoutException:
+            assert False, 'Something goes wrong. Maybe need to update data from dataset: <expired_doc>'
 
         archive = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="#notActualDocs"]')))
@@ -1726,7 +1758,7 @@ class TestApplicant:
                 until(EC.element_to_be_clickable((By.XPATH, f'//a[@{delete_expired_doc}]')))
             delete_archive_doc.click()
         except TimeoutException:
-            assert False, 'Something goes wrong. Maybe need to update data from dataset: <delete_expired_doc>'
+            assert False, 'Need to update data from dataset: <delete_expired_doc>'
 
         confirm_delete = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Удалить"]')))
