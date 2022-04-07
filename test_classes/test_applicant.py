@@ -664,16 +664,13 @@ def filter_for_deletion(request):
     open_filter.click()
 
     type_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-        (By.CLASS_NAME, 'filter-option'))).send_keys(request)
+        (By.CLASS_NAME, 'filter-option')))
     type_request.click()
 
     time.sleep(1)
 
-    # Error here
-    # changed_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-    #     (By.CLASS_NAME, 'form-control')))
-    # WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-    #     until(EC.element_to_be_clickable((By.XPATH, '//input[@type="text"]'))).send_keys(request)
+    WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        until(EC.element_to_be_clickable((By.XPATH, f'//span[contains(text(),"{request}")]'))).click()
 
     time.sleep(1)
 
@@ -689,6 +686,7 @@ def filter_for_deletion(request):
     table_req = soup_req.find('table', class_="table table-hover")
     info_delete = [i['class'] for i in table_req.find_all('i', class_='fa')]
     info_delete_smallest = [j for j in info_delete if j[1] != 'fa-lock']
+
     workers_delete = list()
     for check_class in info_delete_smallest:
         for check_right_icon in check_class:
@@ -701,10 +699,10 @@ def filter_for_deletion(request):
             if check_workers != 'fa-users':
                 error += 1
                 break
-        if error == 0:
-            assert True
-        else:
+        if error >= 1:
             assert False, 'Filter input "Тип запроса" work incorrect'
+        else:
+            assert True
 
     elif request == 'Транспортное средство на удаление':
         error = 0
@@ -712,10 +710,10 @@ def filter_for_deletion(request):
             if check_workers != 'fa-car':
                 error += 1
                 break
-        if error == 1:
-            assert True
-        else:
+        if error >= 1:
             assert False, 'Filter input "Тип запроса" work incorrect'
+        else:
+            assert True
 
 
 def input_elem(elem, key, key_bind):
@@ -749,7 +747,7 @@ class DriverInitialize:
     options = webdriver.ChromeOptions()
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('start-maximized')
-    options.add_argument('--headless')
+    # options.add_argument('--headless')
     options.add_argument('--enable-javascript')
     download_pref = {'download.default_directory': stuff_path, "download.prompt_for_download": False}
     options.add_experimental_option("prefs", download_pref)
@@ -763,7 +761,7 @@ class DriverInitialize:
     timeout = 10
 
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 @allure.feature('Test for role "Заявитель"')
 class TestApplicant:
     @allure.title('Test authorization')
