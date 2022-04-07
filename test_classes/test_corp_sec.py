@@ -10,11 +10,18 @@ from selenium.webdriver import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-from data_test import filter_end_date_pass, main_company, date_from_app, date_to_app
+from data_test import filter_organization, filter_name_inv, filter_position, filter_datepick, \
+    filter_number_invites_worker, filter_number_application_worker, \
+    filter_number_invites_vehicle, filter_number_application_vehicle, filter_birth, filter_birth_for_apps
+from data_test import filter_name_pass, filter_number_pass_worker, filter_end_date_pass, filter_type_vehicle,\
+    filter_number_pass_vehicle, \
+    vehicle_id, filter_type_vehicle_app, filter_name_vehicle_app, main_company, date_from_app, date_to_app, \
+    expired_doc, delete_expired_doc, edit_expired_doc, delete_unit
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -370,7 +377,8 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
             assert False, 'Filter input "Тип ТС" work incorrect'
 
 
-def filter_number_docs(number_app=None, count_column=None, number_inv=None, number_pass=None, end_date=None):
+def filter_number_docs(number_app=None, count_column=None, number_inv=None, number_pass=None, end_date=None,
+                       for_transport_pass=False):
     """
     Test common filter input of docs
     :param number_app: number of application
@@ -378,6 +386,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
     :param number_inv: number of invites
     :param number_pass: number of pass
     :param end_date: date of the end of pass
+    :param for_transport_pass: if current folder is Passes
     :return:
     """
     # Filter number invites
@@ -435,7 +444,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         if num_app == number_app:
             assert True
         else:
-            assert False, 'Filter input "Номер пропуска" work incorrect'
+            assert False, 'Filter input "Номер заявки" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -444,9 +453,14 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
 
     # Filter number pass
     if number_pass:
-        enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.ID, 'BarCode')))
-        enter_number_inv.send_keys(number_pass, Keys.ENTER)
+        if for_transport_pass:
+            enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+                until(EC.element_to_be_clickable((By.ID, 'PassId')))
+            enter_number_inv.send_keys(number_pass, Keys.ENTER)
+        else:
+            enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+                until(EC.element_to_be_clickable((By.ID, 'BarCode')))
+            enter_number_inv.send_keys(number_pass, Keys.ENTER)
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//input[@value="Применить"]'))).click()
 
@@ -466,7 +480,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         if num_pass == number_pass:
             assert True
         else:
-            assert False, 'Filter input "Номер заявки" work incorrect'
+            assert False, 'Filter input "Номер пропуска" work incorrect'
 
         DriverInitialize.driver.execute_script('resetFilter();')
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -518,13 +532,14 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
         DriverInitialize.driver.execute_script('openFilterBlock(this);')
 
 
-def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_vehicle=None):
+def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_vehicle=None, vehicle=False):
     """
     SPECIAL for units from tab application
     :param birth_d: birth day date from app
     :param type_vehicle: type of vehicle from app
     :param id_vehicle: id of vehicle from app
     :param name_vehicle: name of vehicle from app
+    :param vehicle: if input filter on vehicle page
     :return:
     """
     # Filter date
@@ -542,7 +557,11 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
 
     soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
     table_req = soup.find('table', class_="table-striped")
-    date_birthday = table_req.find(text=re.compile(f'{birth_d}')).text.strip()
+    if vehicle:
+        date_birthday = table_req.find(text=re.compile(f'{birth_d}')).text.strip()
+    else:
+        date_birthday = table_req.find('small', text=re.compile(f'{birth_d}')).text.strip()
+    # date_birthday =
 
     if birth_d == date_birthday:
         assert True
@@ -645,12 +664,19 @@ def filter_for_deletion(request):
     open_filter.click()
 
     type_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-        (By.XPATH, '//button[@data-id="AppType"]')))
+        (By.CLASS_NAME, 'filter-option')))
     type_request.click()
 
-    change_type_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-        until(EC.element_to_be_clickable((By.XPATH, './/div/input[@type="text"]')))
-    change_type_request.send_keys(request, Keys.ENTER)
+    time.sleep(1)
+
+    WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        until(EC.element_to_be_clickable((By.XPATH, f'//span[contains(text(),"{request}")]'))).click()
+
+    time.sleep(1)
+
+    btn_submit = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        until(EC.element_to_be_clickable((By.XPATH, '//input[@type="submit"]')))
+    btn_submit.click()
 
     filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
         (By.XPATH, '//input[@value="Применить"]')))
@@ -660,6 +686,7 @@ def filter_for_deletion(request):
     table_req = soup_req.find('table', class_="table table-hover")
     info_delete = [i['class'] for i in table_req.find_all('i', class_='fa')]
     info_delete_smallest = [j for j in info_delete if j[1] != 'fa-lock']
+
     workers_delete = list()
     for check_class in info_delete_smallest:
         for check_right_icon in check_class:
@@ -672,10 +699,10 @@ def filter_for_deletion(request):
             if check_workers != 'fa-users':
                 error += 1
                 break
-        if error == 0:
-            assert True
-        else:
+        if error >= 1:
             assert False, 'Filter input "Тип запроса" work incorrect'
+        else:
+            assert True
 
     elif request == 'Транспортное средство на удаление':
         error = 0
@@ -683,10 +710,10 @@ def filter_for_deletion(request):
             if check_workers != 'fa-car':
                 error += 1
                 break
-        if error == 1:
-            assert True
-        else:
+        if error >= 1:
             assert False, 'Filter input "Тип запроса" work incorrect'
+        else:
+            assert True
 
 
 def input_elem(elem, key, key_bind):
@@ -735,345 +762,6 @@ class DriverInitialize:
 
 
 # @pytest.mark.skip()
-@allure.feature('Test for role "Куратор"')
-class TestCurator:
-    @allure.title('Test authorization')
-    def test_auth(self):
-        DriverInitialize.driver.get(DriverInitialize.URL)
-
-        # Authorization
-        login = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.presence_of_element_located((By.ID, 'Email')))
-        input_elem(login, DriverInitialize.LOGIN, Keys.ENTER)
-
-        passwd = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.ID, 'Password')))
-        input_elem(passwd, DriverInitialize.PASSWD, Keys.ENTER)
-
-        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.CLASS_NAME, 'swal2-confirm'))).click()
-
-        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#curatorWrap"]')))
-
-        if check_title:
-            assert True
-        else:
-            assert False
-
-    @allure.title('Test "Куратор" folder')
-    def test_curator_folder(self):
-        enter_curator = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#curatorWrap"]')))
-        enter_curator.click()
-
-        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#curatorApplications"]')))
-
-        if check_title:
-            assert True
-        else:
-            assert False
-
-    @allure.title('Test "Заявки" folder')
-    def test_app_folder(self):
-        enter_app = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="#curatorApplications"]')))
-        enter_app.click()
-
-        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/Applications"]')))
-
-        if check_title:
-            assert True
-        else:
-            assert False
-
-    @allure.title('Test page "Заявки" from "Заявки"')
-    def test_app_application_page(self):
-        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/Applications"]')))
-        click_app_li.click()
-
-        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
-
-        if name_page == 'Заявки':
-            assert True
-        else:
-            assert False
-
-        download_doc()
-        for check_file in os.listdir(DriverInitialize.stuff_path):
-            if check_file == 'Applications.csv':
-                assert True
-            else:
-                assert False
-
-        os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
-
-    @allure.title('Test pagination on page "Заявки" from "Заявки"')
-    def test_app_pagination_application_page(self):
-        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH,
-             '//a[@href="?page=2&IsActual=True"]')))
-        if page_number:
-            pagination_test(page_number)
-
-    @allure.title('Test filter on page "Заявки" from "Заявки"')
-    def test_app_filter_application_page(self):
-        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.ID, 'btnFilterMobile')))
-        open_filter.click()
-
-        filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
-        filter_for_apps(type_application='Транспорт', date_app=True)
-        filter_for_apps(type_application='ТМЦ')
-
-    @allure.title('Test "Справочники" folder')
-    def test_dict_folder(self):
-        dict_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="#curatorDictWrap"]')))
-        dict_tab.click()
-
-        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/SubCompanies"]')))
-
-        if check_title:
-            assert True
-        else:
-            assert False
-
-    @allure.title('Test page "Субподрядчики" from "Справочники"')
-    def test_dict_sub_comp_page(self):
-        sub_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="/Curator/SubCompanies"]')))
-        sub_company.click()
-
-        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
-
-        if name_page == 'Субподрядчики':
-            assert True
-        else:
-            assert False
-
-        not_actual = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//div[@isactual="false"]')))
-        not_actual.click()
-
-        actual = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//div[@isactual="true"]')))
-        actual.click()
-
-    @allure.title('Test pagination on page "Субподрядчики" from "Справочники"')
-    def test_dict_pagination_comp_page(self):
-        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="?page=2&MainCompanyId=1&IsActual=True"]')))
-        if page_number:
-            pagination_test(page_number)
-
-    @allure.title('Test "Отчеты" folder')
-    def test_reports_folder(self):
-        reports_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="#curatorReportsWrap"]')))
-        reports_tab.click()
-
-        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
-            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Curator/ExpiredDocs"]')))
-
-        if check_title:
-            assert True
-        else:
-            assert False
-
-    @allure.title('Test page "Истекающие документы" from "Отчеты"')
-    def test_reports_expired_page(self):
-        reports_tab = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="/Curator/ExpiredDocs"]')))
-        reports_tab.click()
-
-        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
-
-        if name_page == 'Истекающие документы':
-            assert True
-        else:
-            assert False
-
-        download_doc()
-        for check_file in os.listdir(DriverInitialize.stuff_path):
-            if check_file == 'ExpiredDocs.csv':
-                assert True
-            else:
-                assert False
-
-        os.remove(os.path.join(DriverInitialize.stuff_path, 'ExpiredDocs.csv'))
-
-    @allure.title('Test pagination on page "Истекающие документы" from "Отчеты"')
-    def test_reports_pagination_expired_page(self):
-        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="?page=2&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
-        if page_number:
-            pagination_test(page_number)
-
-    @allure.title('Test filter on page "Истекающие документы" from "Отчеты"')
-    def test_reports_filter_expired_page(self):
-        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.ID, 'btnFilterDesktop')))
-        open_filter.click()
-
-        # Filter type
-        enter_selector = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//button[@data-id="Type"]')))
-        enter_selector.click()
-        change_type = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//input[@type="text"]')))
-        change_type.send_keys('Сотрудник', Keys.ENTER)
-
-        submit_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
-
-        submit_filter.click()
-        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        table_req = soup.find('table', class_="table table-hover table-striped")
-        rows = table_req.find_all('tr')
-        cells = [row.find_all('td') for row in rows]
-        units = list()
-        for cell in cells:
-            count = 0
-            for check_cell in cell:
-                count += 1
-                if count == 5:
-                    res = check_cell.text.strip().split(' ')
-                    for check_res in res:
-                        units.append(check_res)
-                    count = 0
-        error = 0
-        for check_unit in units:
-            if check_unit != 'Сотрудник':
-                error += 1
-        if error == 0:
-            assert True
-        else:
-            assert False
-
-        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
-        reset_filter.click()
-
-        DriverInitialize.driver.execute_script('openFilterBlock(this);')
-
-        # Filter name
-        enter_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.ID, 'Name')))
-        enter_name.send_keys('Карманов Марсель Феликсович', Keys.ENTER)
-        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        table_req = soup.find('table', class_="table table-hover table-striped")
-        rows = table_req.find_all('tr')
-        cells = [row.find_all('td') for row in rows]
-        units = list()
-        for cell in cells:
-            count = 0
-            for check_cell in cell:
-                count += 1
-                if count == 4:
-                    res = check_cell.text.strip().split('</td>')
-                    for check_res in res:
-                        units.append(check_res)
-                    count = 0
-        clear_units = [j for j in units if j != 'Не действителен']
-        error = 0
-        for check_unit in clear_units:
-            if 'Карманов Марсель Феликсович' not in check_unit:
-                error += 1
-        if error == 0:
-            assert True
-        else:
-            assert False
-
-        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
-        reset_filter.click()
-
-        DriverInitialize.driver.execute_script('openFilterBlock(this);')
-
-        # Filter doc
-        enter_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.ID, 'DocName')))
-        enter_doc.send_keys('Трудовой договор', Keys.ENTER)
-        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        table_req = soup.find('table', class_="table table-hover table-striped")
-        rows = table_req.find_all('tr')
-        cells = [row.find_all('td') for row in rows]
-        units = list()
-        for cell in cells:
-            count = 0
-            for check_cell in cell:
-                count += 1
-                if count == 6:
-                    res = check_cell.text.strip().split('</td>')
-                    for check_res in res:
-                        units.append(check_res)
-                    count = 0
-        error = 0
-        for check_unit in units:
-            if 'Трудовой договор' not in check_unit:
-                error += 1
-        if error == 0:
-            assert True
-        else:
-            assert False
-
-        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
-        reset_filter.click()
-
-        DriverInitialize.driver.execute_script('openFilterBlock(this);')
-
-        # Filter date
-        date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.ID, 'dateFrom')))
-        date_from.send_keys('28.02.2022')
-
-        time.sleep(1)
-
-        date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.ID, 'dateTo')))
-        date_to.send_keys('28.02.2022')
-        submit_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
-        submit_filter.click()
-
-        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
-        table_req = soup.find('table', class_="table table-hover table-striped")
-        rows = table_req.find_all('tr')
-        cells = [row.find_all('td') for row in rows]
-        units = list()
-        for cell in cells:
-            count = 0
-            for check_cell in cell:
-                count += 1
-                if count == 7:
-                    res = check_cell.text.strip().split('</td>')
-                    for check_res in res:
-                        units.append(check_res)
-                    count = 0
-        error = 0
-        for check_unit in units:
-            if '28.02.2022' not in check_unit:
-                error += 1
-        if error == 0:
-            assert True
-        else:
-            assert False
-
-        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
-        reset_filter.click()
-
-    @allure.title('Close and Quit')
-    def test_quit(self):
-        DriverInitialize.driver.close()
-        DriverInitialize.driver.quit()
-        shutil.rmtree(DriverInitialize.stuff_path)
+@allure.feature('Test for role "СКЗ"')
+class TestCorpSec:
+    pass

@@ -747,7 +747,7 @@ class DriverInitialize:
     options = webdriver.ChromeOptions()
     options.add_argument('--disable-blink-features=AutomationControlled')
     options.add_argument('start-maximized')
-    # options.add_argument('--headless')
+    options.add_argument('--headless')
     options.add_argument('--enable-javascript')
     download_pref = {'download.default_directory': stuff_path, "download.prompt_for_download": False}
     options.add_experimental_option("prefs", download_pref)
@@ -761,7 +761,7 @@ class DriverInitialize:
     timeout = 10
 
 
-@pytest.mark.skip()
+# @pytest.mark.skip()
 @allure.feature('Test for role "Заявитель"')
 class TestApplicant:
     @allure.title('Test authorization')
