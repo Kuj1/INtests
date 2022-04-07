@@ -297,15 +297,15 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
                 res = check_cell.text.strip().split('</td>')
                 for check_res in res:
                     comps.append(check_res)
+
         error = 0
         for check_comp in comps:
-            if check_comp == org:
-                continue
-            else:
+            if check_comp != org:
                 error += 1
-        if error > 0:
+
+        if error >= 1:
             assert False, 'Filter input "Организация" work incorrect'
-        elif error == 0:
+        else:
             assert True
 
         DriverInitialize.driver.execute_script('resetFilter();')
@@ -795,7 +795,7 @@ class DriverInitialize:
     timeout = 10
 
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 @allure.feature('Test for role "Пром. безопасность"')
 class TestIndSec:
     @allure.title('Test authorization')
@@ -942,7 +942,7 @@ class TestIndSec:
         # Filter only manual testing
 
     @allure.title('Test page "Печать пропусков" from "Приглашения"')
-    def test_inv_print_inv_page(self):
+    def test_pass_print_pass_page(self):
         pass_print = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="/IndustrialSecurity/PrintPass/GetPdf"]')))
         pass_print.click()
@@ -1074,7 +1074,7 @@ class TestIndSec:
 
         os.remove(os.path.join(DriverInitialize.stuff_path, 'Locations.csv'))
 
-    @allure.title('Test pagination on page "Заявки" from "Заявки"')
+    @allure.title('Test pagination on page "Объекты" from "Справочники"')
     def test_dict_pagination_locations_page(self):
         page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="?page=2&IsActual=True"]')))
@@ -1311,7 +1311,7 @@ class TestIndSec:
         if page_number:
             pagination_test(page_number)
 
-    @allure.title('Test filter on page "Истекающие документы" from "Отчеты"')
+    @allure.title('Test filter on page "Причины отказов" from "Отчеты"')
     def test_reports_filter_reasons_page(self):
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))

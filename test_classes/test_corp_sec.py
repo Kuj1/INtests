@@ -15,10 +15,9 @@ from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-from data_test import filter_organization, filter_name_inv, filter_position, filter_datepick, \
-    filter_number_invites_worker, filter_number_application_worker, \
-    filter_number_invites_vehicle, filter_number_application_vehicle, filter_birth, filter_birth_for_apps
-from data_test import filter_name_pass, filter_number_pass_worker, filter_end_date_pass, filter_type_vehicle,\
+from data_test import filter_organization, filter_position, filter_datepick, filter_number_application_worker, \
+    filter_number_application_vehicle, filter_birth, filter_birth_for_apps, type_unit
+from data_test import filter_name_pass, filter_number_pass_worker, filter_end_date_pass, filter_type_vehicle, \
     filter_number_pass_vehicle, \
     vehicle_id, filter_type_vehicle_app, filter_name_vehicle_app, main_company, date_from_app, date_to_app, \
     expired_doc, delete_expired_doc, edit_expired_doc, delete_unit
@@ -48,17 +47,17 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
     """
     # Filter grand contact
     if grand_contract:
-        enter_grand_contract = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        enter_grand_contract = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'select2-MainCompany-container')))
         enter_grand_contract.click()
-        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.CLASS_NAME, 'select2-search__field'))).\
+        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'select2-search__field'))). \
             send_keys(grand_contract)
-        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
-            until(EC.element_to_be_clickable((By.XPATH, f"""//li[text()='{grand_contract}']"""))).\
+        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, f"""//li[text()='{grand_contract}']"""))). \
             click()
 
-        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
         filter_enter.click()
 
@@ -85,14 +84,14 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
 
     # Filter type app
     if type_application:
-        type_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        type_request = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//button[@data-id="appType"]')))
         type_request.click()
 
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, './/div/input[@type="text"]'))).send_keys(type_application, Keys.ENTER)
 
-        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
         filter_enter.click()
 
@@ -102,11 +101,11 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
         unit = list()
         for check_class in info_delete:
             for check_right_icon in check_class:
-                if check_right_icon != 'fa' and check_right_icon != 'fa-lock' and check_right_icon != 'fa-check'\
-                        and check_right_icon != 'float-right' \
-                        and check_right_icon != 'm-r-15' \
-                        and check_right_icon != 'p-t-5' \
-                        and check_right_icon != 'fa-times':
+                if check_right_icon != 'fa' and check_right_icon != 'fa-lock' and check_right_icon != 'fa-check' \
+                    and check_right_icon != 'float-right' \
+                    and check_right_icon != 'm-r-15' \
+                    and check_right_icon != 'p-t-5' \
+                    and check_right_icon != 'fa-times':
                     unit.append(check_right_icon)
 
         if type_application == 'Сотрудники':
@@ -147,15 +146,15 @@ def filter_for_apps(grand_contract=None, date_app=None, type_application=None):
 
     # Filter date
     if date_app:
-        filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'dateFrom')))
         filter_date_from.send_keys(date_from_app)
 
-        filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'dateTo')))
         filter_date_to.send_keys(date_to_app, Keys.ENTER)
 
-        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
         filter_enter.click()
 
@@ -205,10 +204,100 @@ def download_doc():
     Click to "Excel" button and download document
     :return:
     """
-    not_actual_inv_download = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+    not_actual_inv_download = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
         until(EC.element_to_be_clickable((By.ID, 'btnDownloadCsvFile')))
     not_actual_inv_download.click()
     time.sleep(1)
+
+
+def filter_for_denial(org=None, tab=False, type_units=None):
+    # Filter company
+    if org:
+        filter_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable((By.ID, 'select2-MainCompanyId-container')))
+        filter_company.click()
+        change_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, 'select2-search__field')))
+        change_company.send_keys(org)
+        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable((By.XPATH, """//li[text()='АО "ПРЕМЬЕРСТРОЙ"']"""))).click()
+        filter_enter_button = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
+        filter_enter_button.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table-striped")
+        rows = table_req.find_all('tr')[1:]
+        units = list()
+        for cell in rows:
+            count = 0
+            for check_cell in cell:
+                res = check_cell.text.strip().split('</td>')
+                count += 1
+                if count == 4:
+                    for check_res in res:
+                        units.append(check_res)
+        error = 0
+        for check_units in units:
+            if check_units == org:
+                continue
+            else:
+                error += 1
+                break
+
+        if error == 0:
+            assert True
+        elif error >= 1:
+            assert False, 'Filter input "Организация" working incorrect'
+
+        DriverInitialize.driver.execute_script('resetFilter();')
+        if tab:
+            WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, "//div[@isactual='false']"))).click()
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
+
+    # Type
+    if type_units:
+        filter_type = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable((By.XPATH, '//button[@data-id="ReportItemTypeId"]')))
+        filter_type.click()
+        change_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable((By.XPATH, '//input[@type="text"]')))
+        change_filter.send_keys(type_units, Keys.ENTER)
+        filter_enter_button = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
+        filter_enter_button.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table-striped")
+        rows = table_req.find_all('tr')[1:]
+        types = list()
+        for cell in rows:
+            count = 0
+            for check_cell in cell:
+                res = check_cell.text.strip().split('</td>')
+                count += 1
+                if count == 6:
+                    for check_res in res:
+                        types.append(check_res)
+        error = 0
+        for check_type in types:
+            if check_type == type_units:
+                continue
+            else:
+                error += 1
+                break
+
+        if error >= 1:
+            assert False, 'Filter input "Тип" working incorrect'
+        elif error == 0:
+            assert True
+
+        DriverInitialize.driver.execute_script('resetFilter();')
+        if tab:
+            WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, "//div[@isactual='false']"))).click()
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
 
 
 def filter_for_units(org=None, name=None, position=None, date_birth=None, type_vehicle=None, tab=False, link=False):
@@ -225,30 +314,38 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
     """
     # Filter company
     if org:
-        filter_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'select2-MainCompanyId-container')))
         filter_company.click()
-        change_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        change_company = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.CLASS_NAME, 'select2-search__field')))
-        change_company.send_keys(org)
+        change_company.send_keys(org.strip())
         change_company.send_keys(Keys.ENTER)
-        filter_enter_button = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_enter_button = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
         filter_enter_button.click()
+
+        time.sleep(1)
 
         soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
         table_req = soup.find('table', class_="table-striped")
         rows = table_req.find_all('tr')
         cells = [row.find_all('span', {"title": re.compile(r'АО "ПРЕМЬЕРСТРОЙ"')}) for row in rows]
-        units = list()
+        comps = list()
         for cell in cells:
             for check_cell in cell:
                 res = check_cell.text.strip().split('</td>')
                 for check_res in res:
-                    units.append(check_res)
-        if len(units) != 10:
+                    comps.append(check_res)
+
+        error = 0
+        for check_comp in comps:
+            if check_comp != org:
+                error += 1
+
+        if error >= 1:
             assert False, 'Filter input "Организация" work incorrect'
-        elif len(units) == 10:
+        else:
             assert True
 
         DriverInitialize.driver.execute_script('resetFilter();')
@@ -259,7 +356,7 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
 
     # Filter name
     if name:
-        filter_change_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_change_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'Fio')))
         filter_change_name.send_keys(name, Keys.ENTER)
 
@@ -283,7 +380,7 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
         # Filter position
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//button[@data-id="WorkerPosition"]'))).click()
-        worker_position = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        worker_position = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.LINK_TEXT, position)))
         worker_position.click()
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -319,15 +416,15 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
 
     # Filter date birth
     if date_birth:
-        filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'birthdayFrom')))
         filter_date_from.send_keys(date_birth)
 
-        filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'birthdayTo')))
         filter_date_to.send_keys(date_birth, Keys.ENTER)
 
-        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
         filter_enter.click()
 
@@ -350,7 +447,7 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
     if type_vehicle:
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//button[@data-id="VehicleTypeId"]'))).click()
-        enter_type_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        enter_type_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.LINK_TEXT, type_vehicle)))
         enter_type_vehicle.click()
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -391,7 +488,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
     """
     # Filter number invites
     if number_inv:
-        enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'Number')))
         enter_number_inv.send_keys(number_inv, Keys.ENTER)
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -422,7 +519,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
 
     # Filter number application
     if number_app:
-        enter_number_app = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        enter_number_app = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'ApplicationId')))
         enter_number_app.send_keys(number_app, Keys.ENTER)
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -458,7 +555,7 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
                 until(EC.element_to_be_clickable((By.ID, 'PassId')))
             enter_number_inv.send_keys(number_pass, Keys.ENTER)
         else:
-            enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            enter_number_inv = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
                 until(EC.element_to_be_clickable((By.ID, 'BarCode')))
             enter_number_inv.send_keys(number_pass, Keys.ENTER)
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -489,15 +586,15 @@ def filter_number_docs(number_app=None, count_column=None, number_inv=None, numb
 
     # Filter end date of pass
     if end_date:
-        filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'dateFrom')))
         filter_date_from.send_keys(end_date)
 
-        filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'dateTo')))
         filter_date_to.send_keys(filter_end_date_pass, Keys.ENTER)
 
-        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
         filter_enter.click()
 
@@ -543,15 +640,15 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
     :return:
     """
     # Filter date
-    filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+    filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
         until(EC.element_to_be_clickable((By.ID, 'dateFrom')))
     filter_date_from.send_keys(birth_d)
 
-    filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+    filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
         until(EC.element_to_be_clickable((By.ID, 'dateTo')))
     filter_date_to.send_keys(filter_end_date_pass, Keys.ENTER)
 
-    filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+    filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
         until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
     filter_enter.click()
 
@@ -575,7 +672,7 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
     if type_vehicle:
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.XPATH, '//button[@data-id="TypeId"]'))).click()
-        enter_type_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        enter_type_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.LINK_TEXT, type_vehicle)))
         enter_type_vehicle.click()
         WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
@@ -606,11 +703,11 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
 
     # Filter id vehicle
     if id_vehicle:
-        enter_id_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        enter_id_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'VehicleId')))
         enter_id_vehicle.send_keys(id_vehicle)
 
-        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
         filter_enter.click()
 
@@ -637,7 +734,7 @@ def filter_for_units_app(birth_d=None, type_vehicle=None, id_vehicle=None, name_
 
     # Filter name vehicle
     if name_vehicle:
-        filter_change_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+        filter_change_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'Name')))
         filter_change_name.send_keys(name_vehicle, Keys.ENTER)
 
@@ -764,4 +861,769 @@ class DriverInitialize:
 # @pytest.mark.skip()
 @allure.feature('Test for role "СКЗ"')
 class TestCorpSec:
-    pass
+    @allure.title('Test authorization')
+    def test_auth(self):
+        DriverInitialize.driver.get(DriverInitialize.URL)
+
+        # Authorization
+        login = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.presence_of_element_located((By.ID, 'Email')))
+        input_elem(login, DriverInitialize.LOGIN, Keys.ENTER)
+
+        passwd = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'Password')))
+        input_elem(passwd, DriverInitialize.PASSWD, Keys.ENTER)
+
+        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.CLASS_NAME, 'swal2-confirm'))).click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#corpsecurityWrap"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False
+
+    @allure.title('Test "СКЗ" folder')
+    def test_corp_sec_folder(self):
+        close_sticky_applicant = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#applicantWrap"]')))
+        close_sticky_applicant.click()
+
+        time.sleep(1)
+
+        WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#corpsecurityWrap"]'))).click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="#corpsecurityPassesWrap"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False, 'Impossible enter in "СКЗ" folder'
+
+    @allure.title('Test "Пропуска" folder')
+    def test_pass_folder(self):
+        passes_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="#corpsecurityPassesWrap"]')))
+        passes_wrap.click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/VehiclePasses"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False, 'Impossible enter in "Пропуска" folder'
+
+    @allure.title('Test page "Сотрудники" from "Пропуска"')
+    def test_pass_worker_page(self):
+        click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/WorkerPasses"]')))
+        click_pass_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Пропуска сотрудников':
+            assert True
+        else:
+            assert False, 'Error with "Сотрудники" page. Not expected page, or something else'
+
+        not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_workers.click()
+        download_doc()
+
+        actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='true']")))
+        actual_pass_workers.click()
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'WorkerPasses.csv':
+                assert True
+            else:
+                assert False, 'Downloaded wrong file'
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'WorkerPasses.csv'))
+
+    @allure.title('Test pagination on page "Сотрудники" from "Пропуска"')
+    def test_pass_pagination_worker_page(self):
+        not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_workers.click()
+
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=desc&IsActual=False"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    @allure.title('Test filter on page "Сотрудники" from "Пропуска"')
+    def test_pass_filter_worker_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+
+        filter_for_units(org=filter_organization, name=filter_name_pass,
+                         position=filter_position, date_birth=filter_birth, tab=True)
+        filter_number_docs(number_app=filter_number_application_worker, count_column=6,
+                           number_pass=filter_number_pass_worker, end_date=filter_end_date_pass)
+        # Input "Антитела" - manual testing only
+
+    @allure.title('Test page "Транспорт" from "Пропуска"')
+    def test_pass_vehicle_page(self):
+        click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/VehiclePasses"]')))
+        click_pass_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Пропуска транспорта':
+            assert True
+        else:
+            assert False, 'Error with "Транспорт" page. Not expected page, or something else'
+
+        not_actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_vehicle.click()
+        download_doc()
+
+        actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='true']")))
+        actual_pass_vehicle.click()
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'VehiclePasses.csv':
+                assert True
+            else:
+                assert False, 'Downloaded wrong file'
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'VehiclePasses.csv'))
+
+    @allure.title('Test pagination on page "Транспорт" from "Пропуска"')
+    def test_pass_pagination_vehicle_page(self):
+        not_actual_pass_vehicle = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_vehicle.click()
+
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&IsActual=False"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    @allure.title('Test filter on page "Транспорт" from "Пропуска"')
+    def test_pass_filter_vehicle_page(self):
+        not_actual = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//div[@isactual="false"]')))
+        not_actual.click()
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+        try:
+            filter_for_units(type_vehicle=filter_type_vehicle)
+            DriverInitialize.driver.execute_script('resetFilter();')
+            WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                (By.XPATH, "//div[@isactual='false']"))).click()
+            DriverInitialize.driver.execute_script('openFilterBlock(this);')
+            filter_number_docs(number_app=filter_number_application_vehicle, count_column=6,
+                               number_pass=filter_number_pass_vehicle, end_date=filter_end_date_pass,
+                               for_transport_pass=True)
+        except TimeoutException:
+            assert False, 'Something goes wrong.'
+
+    @allure.title('Test page "ТМЦ" from "Пропуска"')
+    def test_pass_value_page(self):
+        click_pass_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/ValuePasses"]')))
+        click_pass_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Пропуска ТМЦ':
+            assert True
+        else:
+            assert False, 'Error with "ТМЦ" page. Not expected page, or something else'
+
+        not_actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='false']")))
+        not_actual_pass_workers.click()
+        download_doc()
+
+        actual_pass_workers = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, "//div[@isactual='true']")))
+        actual_pass_workers.click()
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'ValuePasses.csv':
+                assert True
+            else:
+                assert False, 'Downloaded wrong file'
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'ValuePasses.csv'))
+
+        # Less than one page. Testing pagination impossible
+        # Filter only manual testing
+
+    @allure.title('Test page "Печать пропусков" from "Приглашения"')
+    def test_pass_print_pass_page(self):
+        pass_print = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="/CorpSecurity/PrintPass/GetPdf"]')))
+        pass_print.click()
+
+        download_pass_pdf = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Скачать"]')))
+        download_pass_pdf.click()
+
+        if WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'ApplicationId-error'))):
+            assert True
+        else:
+            assert False, 'Must be raised error, but it\'s not'
+
+        download_pass_pdf = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Скачать"]')))
+        download_pass_pdf.send_keys('1000000 , d s addfdf', Keys.ENTER)
+
+        if WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.CLASS_NAME, 'validation-summary-errors'))):
+            assert True
+        else:
+            assert False, 'Must be raised error, but it\'s not'
+
+    @allure.title('Test "Заявки" folder')
+    def test_app_folder(self):
+        app_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="#corpsecurityApplications"]')))
+        app_wrap.click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/Applications"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False, 'Impossible enter in "Заявки" folder'
+
+    @allure.title('Test page "Заявки" from "Заявки"')
+    def test_app_application_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/Applications"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Заявки':
+            assert True
+        else:
+            assert False, 'Error with "Заявки" page. Not expected page, or something else'
+
+        download_doc()
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'Applications.csv':
+                assert True
+            else:
+                assert False, 'Downloaded wrong file'
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Applications.csv'))
+
+    @allure.title('Test pagination on page "Заявки" from "Заявки"')
+    def test_app_pagination_application_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                        (By.XPATH, '//a[@href="?page=2&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    @allure.title('Test filter on page "Заявки" from "Заявки"')
+    def test_app_filter_application_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterMobile')))
+        open_filter.click()
+        filter_for_apps(grand_contract=main_company, type_application='Сотрудники')
+        filter_for_apps(type_application='Транспорт', date_app=True)
+        filter_for_apps(type_application='ТМЦ')
+        # Other filter input's should tested manually
+
+    @allure.title('Test page "Сотрудники" from "Заявки"')
+    def test_app_worker_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/Workers"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Справочник сотрудников':
+            assert True
+        else:
+            assert False, 'Error with "Сотрудники" page. Not expected page, or something else'
+
+        download_doc()
+
+        time.sleep(1)
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'Workers.csv':
+                assert True
+            else:
+                assert False, 'Downloaded wrong file'
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Workers.csv'))
+
+    @allure.title('Test pagination on page "Сотрудники" from "Заявки"')
+    def test_app_pagination_worker_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&SortingColumn=FullName&SortingDirection=asc&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    @allure.title('Test filter on page "Сотрудники" from "Заявки"')
+    def test_app_filter_worker_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+
+        filter_for_units(org=filter_organization, name=filter_name_pass,
+                         position=filter_position, link=True)
+        filter_for_units_app(birth_d=filter_birth_for_apps)
+
+    @allure.title('Test page "Транспорт" from "Заявки"')
+    def test_app_vehicle_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/Vehicles"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', class_='filter-title').text.strip()
+
+        if name_page == 'Справочник транспортных средств':
+            assert True
+        else:
+            assert False, 'Error with "Транспорт" page. Not expected page, or something else'
+
+        download_doc()
+
+        time.sleep(1)
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'Vehicles.csv':
+                assert True
+            else:
+                assert False, 'Downloaded wrong file'
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'Vehicles.csv'))
+
+    @allure.title('Test pagination on page "Транспорт" from "Заявки"')
+    def test_app_pagination_vehicle_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&SortingColumn=Id&SortingDirection=asc&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    @allure.title('Test filter on page "Транспорт" from "Заявки"')
+    def test_app_filter_vehicle_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+                    (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+        try:
+            filter_for_units(org=filter_organization, link=True)
+            filter_for_units_app(birth_d=filter_datepick,
+                                 type_vehicle=filter_type_vehicle_app,
+                                 id_vehicle=vehicle_id, name_vehicle=filter_name_vehicle_app, vehicle=True)
+        except TimeoutException:
+            assert False, 'Something working incorrect.'
+
+    @allure.title('Test page "На удаление" from "Заявки"')
+    def test_app_deletion_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/ApplicationsForDeletion"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Заявки на удаление':
+            assert True
+        else:
+            assert False, 'Error with "На удаление" page. Not expected page, or something else'
+
+    @allure.title('Test filter on page "На удаление" from "Заявки"')
+    def test_app_filter_deletion_page(self):
+        first_request = 'Транспортное средство на удаление'
+        second_request = 'Сотрудник на удаление'
+
+        filter_for_deletion(first_request)
+        DriverInitialize.driver.execute_script('resetFilter()')
+        time.sleep(1)
+
+        filter_for_deletion(second_request)
+        DriverInitialize.driver.execute_script('resetFilter()')
+        time.sleep(1)
+
+        DriverInitialize.driver.execute_script('openFilterBlock(this)')
+        filter_date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.ID, 'dateFrom')))
+        filter_date_from.send_keys('09.08.2021')
+
+        filter_date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.ID, 'dateTo')))
+        filter_date_to.send_keys('09.08.2021', Keys.ENTER)
+
+        filter_enter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
+        filter_enter.click()
+
+        soup_req = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup_req.find('table', class_="table table-hover")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        date_create = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 4:
+                    res = check_cell.text.strip().split(' ')[:1]
+                    for check_res in res:
+                        date_create.append(check_res)
+                    count = 0
+        error = 0
+        for check_date in date_create:
+            if check_date != '09.08.2021':
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False, 'Filter input "Дата" work incorrect'
+
+    @allure.title('Test detailed view on page "На удаление" from "Заявки"')
+    def test_app_detailed_view_deletion_page(self):
+        try:
+            detailed_view = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).\
+                until(EC.element_to_be_clickable(
+                    (By.XPATH, f'//a[@href="{delete_unit}"]')))
+            detailed_view.click()
+        except TimeoutException:
+            assert False, 'Need to update data from dataset: <delete_unit>'
+
+    @allure.title('Test "Справочники" folder')
+    def test_dict_folder(self):
+        dict_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="#corpsecurityDictWrap"]')))
+        dict_wrap.click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/VehicleDocumentTypes"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False, 'Impossible enter in "Справочники" folder'
+
+    @allure.title('Test page "Треб. транспорта" from "Справочники"')
+    def test_dict_vehicle_doc_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/VehicleDocumentTypes"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Требования к транспортным средствам':
+            assert True
+        else:
+            assert False, 'Error with "Треб. транспорта" page. Not expected page, or something else'
+
+    @allure.title('Test page "Виды транспорта" from "Справочники"')
+    def test_dict_vehicle_types_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/VehicleTypes"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Виды транспорта':
+            assert True
+        else:
+            assert False, 'Error with "Виды транспорта" page. Not expected page, or something else'
+
+        download_doc()
+
+        time.sleep(1)
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'VehicleTypes.csv':
+                assert True
+            else:
+                assert False, 'Downloaded wrong file'
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'VehicleTypes.csv'))
+
+    @allure.title('Test "Отчеты" folder')
+    def test_reports_folder(self):
+        reports_wrap = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable(
+                (By.XPATH, '//a[@href="#corpsecurityReportsWrap"]')))
+        reports_wrap.click()
+
+        check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/ReportApplications"]')))
+
+        if check_title:
+            assert True
+        else:
+            assert False, 'Impossible enter in "Отчеты" folder'
+
+    @allure.title('Test page "Истекающие документы" from "Отчеты"')
+    def test_reports_expired_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/ExpiredDocs"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Истекающие документы':
+            assert True
+        else:
+            assert False, 'Error with "Истекающие документы" page. Not expected page, or something else'
+
+        download_doc()
+
+        time.sleep(1)
+
+        for check_file in os.listdir(DriverInitialize.stuff_path):
+            if check_file == 'ExpiredDocs.csv':
+                assert True
+            else:
+                assert False, 'Downloaded wrong file'
+
+        os.remove(os.path.join(DriverInitialize.stuff_path, 'ExpiredDocs.csv'))
+
+    @allure.title('Test pagination on page "Истекающие документы" from "Отчеты"')
+    def test_reports_pagination_expired_page(self):
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=3&SortingColumn=DaysLeft&SortingDirection=desc&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    @allure.title('Test filter on page "Истекающие документы" from "Отчеты"')
+    def test_reports_filter_expired_page(self):
+        open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'btnFilterDesktop')))
+        open_filter.click()
+
+        # Filter type
+        enter_selector = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//button[@data-id="Type"]')))
+        enter_selector.click()
+        change_type = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//input[@type="text"]')))
+        change_type.send_keys('Сотрудник', Keys.ENTER)
+
+        submit_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
+        submit_filter.click()
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table table-hover table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        units = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 5:
+                    res = check_cell.text.strip().split(' ')
+                    for check_res in res:
+                        units.append(check_res)
+                    count = 0
+        error = 0
+        for check_unit in units:
+            if check_unit != 'Сотрудник':
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False, 'Filter input "Тип" work incorrect'
+
+        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
+        reset_filter.click()
+
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
+
+        # Filter name
+        enter_name = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'Name')))
+        enter_name.send_keys('Карманов Марсель Феликсович', Keys.ENTER)
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table table-hover table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        units = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 4:
+                    res = check_cell.text.strip().split('</td>')
+                    for check_res in res:
+                        units.append(check_res)
+                    count = 0
+        clear_units = [j for j in units if j != 'Не действителен']
+        error = 0
+        for check_unit in clear_units:
+            if 'Карманов Марсель Феликсович' not in check_unit:
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False, 'Filter input "Наименование" work incorrect'
+
+        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
+        reset_filter.click()
+
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
+
+        # Filter doc
+        enter_doc = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'DocName')))
+        enter_doc.send_keys('Трудовой договор', Keys.ENTER)
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table table-hover table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        units = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 6:
+                    res = check_cell.text.strip().split('</td>')
+                    for check_res in res:
+                        units.append(check_res)
+                    count = 0
+        error = 0
+        for check_unit in units:
+            if 'Трудовой договор' not in check_unit:
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False, 'Filter input "Документ" work incorrect'
+
+        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
+        reset_filter.click()
+
+        DriverInitialize.driver.execute_script('openFilterBlock(this);')
+
+        # Filter date
+        date_from = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'dateFrom')))
+        date_from.send_keys('28.02.2022')
+
+        time.sleep(1)
+
+        date_to = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.ID, 'dateTo')))
+        date_to.send_keys('28.02.2022')
+        submit_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//input[@value="Применить"]')))
+        submit_filter.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        table_req = soup.find('table', class_="table table-hover table-striped")
+        rows = table_req.find_all('tr')
+        cells = [row.find_all('td') for row in rows]
+        units = list()
+        for cell in cells:
+            count = 0
+            for check_cell in cell:
+                count += 1
+                if count == 7:
+                    res = check_cell.text.strip().split('</td>')
+                    for check_res in res:
+                        units.append(check_res)
+                    count = 0
+        error = 0
+        for check_unit in units:
+            if '28.02.2022' not in check_unit:
+                error += 1
+        if error == 0:
+            assert True
+        else:
+            assert False, 'Filter input "Дата окончания" work incorrect'
+
+        reset_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.CLASS_NAME, 'a-clear')))
+        reset_filter.click()
+
+    @allure.title('Test page "Ресурсы" from "Отчеты"')
+    def test_reports_resource_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/ReportApplications"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Ресурсы':
+            assert True
+        else:
+            assert False, 'Error with "Ресурсы" page. Not expected page, or something else'
+
+    @allure.title('Test page "Отчёт согласования" from "Отчеты"')
+    def test_reports_agreement_reports_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/ReportApplicationsByPeriod"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Отчёт согласования':
+            assert True
+        else:
+            assert False, 'Error with "Отчёт согласования" page. Not expected page, or something else'
+
+    @allure.title('Test page "Иностранцы" from "Отчеты"')
+    def test_reports_foreigner_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/CorpSecurity/OtherForms"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Иностранцы':
+            assert True
+        else:
+            assert False, 'Error with "Иностранцы" page. Not expected page, or something else'
+
+    @allure.title('Test pagination on page "Иностранцы" from "Отчеты"')
+    def test_reports_pagination_foreigner_page(self):
+        DriverInitialize.driver.execute_script("$('#parameters_IsActual').val(true)")
+
+        page_number = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
+            (By.XPATH, '//a[@href="?page=2&IsActual=True"]')))
+        if page_number:
+            pagination_test(page_number)
+
+    @allure.title('Close and Quit')
+    def test_quit(self):
+        DriverInitialize.driver.close()
+        DriverInitialize.driver.quit()
+        shutil.rmtree(DriverInitialize.stuff_path)

@@ -234,15 +234,20 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
         table_req = soup.find('table', class_="table-striped")
         rows = table_req.find_all('tr')
         cells = [row.find_all('span', {"title": re.compile(r'АО "ПРЕМЬЕРСТРОЙ"')}) for row in rows]
-        units = list()
+        comps = list()
         for cell in cells:
             for check_cell in cell:
                 res = check_cell.text.strip().split('</td>')
                 for check_res in res:
-                    units.append(check_res)
-        if len(units) != 10:
+                    comps.append(check_res)
+        error = 0
+        for check_comp in comps:
+            if check_comp != org:
+                error += 1
+
+        if error >= 1:
             assert False, 'Filter input "Организация" work incorrect'
-        elif len(units) == 10:
+        else:
             assert True
 
         DriverInitialize.driver.execute_script('resetFilter();')
@@ -735,8 +740,8 @@ class DriverInitialize:
     timeout = 10
 
 
-# @pytest.mark.skip()
-@allure.feature('Tefst for role "Медик"')
+@pytest.mark.skip()
+@allure.feature('Test for role "Медик"')
 class TestMedic:
     @allure.title('Test authorization')
     def test_auth(self):

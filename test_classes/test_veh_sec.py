@@ -249,13 +249,12 @@ def filter_for_units(org=None, name=None, position=None, date_birth=None, type_v
                     comps.append(check_res)
         error = 0
         for check_comp in comps:
-            if check_comp == org:
-                continue
-            else:
+            if check_comp != org:
                 error += 1
-        if error > 0:
+
+        if error >= 1:
             assert False, 'Filter input "Организация" work incorrect'
-        elif error == 0:
+        else:
             assert True
 
         DriverInitialize.driver.execute_script('resetFilter();')
@@ -760,7 +759,7 @@ class DriverInitialize:
     timeout = 10
 
 
-# @pytest.mark.skip()
+@pytest.mark.skip()
 @allure.feature('Test for role "Трансп. безопасность"')
 class TestVehSec:
     @allure.title('Test authorization')
@@ -789,8 +788,8 @@ class TestVehSec:
 
     @allure.title('Test "Трансп. безопасность" folder')
     def test_vehicle_sec_folder(self):
-        enter_folder = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
-            (By.XPATH, '//a[@href="#transportsecurityWrap"]')))
+        enter_folder = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(
+            EC.element_to_be_clickable((By.XPATH, '//a[@href="#transportsecurityWrap"]')))
         enter_folder.click()
 
         check_title = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
