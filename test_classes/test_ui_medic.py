@@ -827,6 +827,8 @@ class TestMedic:
 
     @allure.title('Test filter on page "Заявки" from "Заявки"')
     def test_app_filter_application_page(self):
+        time.sleep(1)
+
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
             until(EC.element_to_be_clickable((By.ID, 'btnFilterMobile')))
         open_filter.click()

@@ -1319,6 +1319,48 @@ class TestIndSec:
 
         filter_for_denial(org=main_company, type_units=type_unit)
 
+    @allure.title('Test page "Ресурсы" from "Отчеты"')
+    def test_reports_resource_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/IndustrialSecurity/ReportApplications"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Ресурсы':
+            assert True
+        else:
+            assert False, 'Error with "Ресурсы" page. Not expected page, or something else'
+
+    @allure.title('Test page "Отчёт согласования" from "Отчеты"')
+    def test_reports_agreement_reports_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/IndustrialSecurity/ReportApplicationsByPeriod"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Отчёт согласования':
+            assert True
+        else:
+            assert False, 'Error with "Отчёт согласования" page. Not expected page, or something else'
+
+    @allure.title('Test page "Журнал регистрации инструктажа" from "Отчеты"')
+    def test_reports_journal_page(self):
+        click_app_li = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout). \
+            until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/IndustrialSecurity/Journal"]')))
+        click_app_li.click()
+
+        soup = BeautifulSoup(DriverInitialize.driver.page_source, 'html.parser')
+        name_page = soup.find('span', {'id': 'lblActionName'}).text.strip()
+
+        if name_page == 'Журнал регистрации инструктажа':
+            assert True
+        else:
+            assert False, 'Журнал регистрации инструктажа" page. Not expected page, or something else'
+
     @allure.title('Close and Quit')
     def test_quit(self):
         DriverInitialize.driver.close()

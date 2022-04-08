@@ -15,13 +15,8 @@ from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-from data_test import filter_organization, filter_name_inv, filter_position, filter_datepick, \
-    filter_number_invites_worker, filter_number_application_worker, \
-    filter_number_invites_vehicle, filter_number_application_vehicle, filter_birth, filter_birth_for_apps
-from data_test import filter_name_pass, filter_number_pass_worker, filter_end_date_pass, filter_type_vehicle,\
-    filter_number_pass_vehicle, \
-    vehicle_id, filter_type_vehicle_app, filter_name_vehicle_app, main_company, date_from_app, date_to_app, \
-    expired_doc, delete_expired_doc, edit_expired_doc, delete_unit, type_unit
+from data_test import filter_organization, filter_position, filter_birth_for_apps
+from data_test import filter_name_pass, filter_end_date_pass, main_company, date_from_app, date_to_app, type_unit
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -856,6 +851,8 @@ class DriverInitialize:
     timeout = 10
 
 
+@pytest.mark.skip()
+@allure.feature('Test for role "Предкуратор"')
 class TestPreCurator:
     @allure.title('Test authorization')
     def test_auth(self):
