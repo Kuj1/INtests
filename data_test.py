@@ -162,7 +162,6 @@ type_app = 'Сотрудники'
 type_unit = 'Сотрудник'
 
 # Approve app
-unit_worker = 'Денисов Денис Денисович'
 number_contract = '№ 11111123 от 21.02.2022 [21.02.2022 — бессрочно]'
 date_app = '16.04.2022'
-type_appl = 'Сотрудники'
+type_application = 'Транспортные средства'
