@@ -4,6 +4,7 @@ import re
 import allure
 import shutil
 import random
+import pytest
 
 from selenium import webdriver
 from selenium.webdriver import Keys
@@ -14,10 +15,8 @@ from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
 
-from data_test import first_name, second_name, middle_name, random_date, position, \
-    name_vehicle, type_vehicle, numberplate, vin_vehicle, exp_year_vehicle, \
-    owners_company_number, owners_company_name, contract_number, date_contract, filter_number_invites_worker, \
-    filter_number_application_worker, filter_number_invites_vehicle, filter_number_application_vehicle
+from data_test import first_name, second_name, middle_name, random_date, \
+    name_vehicle, type_vehicle, numberplate, vin_vehicle, exp_year_vehicle
 
 
 def enable_download_in_headless_chrome(web_dr, download_dir):
@@ -146,6 +145,7 @@ class DriverInitialize:
     timeout = 10
 
 
+@pytest.mark.skip()
 @allure.feature('Test creating unit')
 class TestCreatingUnit:
     @allure.title('Test authorization')
