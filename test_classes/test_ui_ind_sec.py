@@ -795,7 +795,7 @@ class DriverInitialize:
     timeout = 10
 
 
-@pytest.mark.skip()
+# @pytest.mark.skip()
 @allure.feature('Test for role "Пром. безопасность"')
 class TestIndSec:
     @allure.title('Test authorization')

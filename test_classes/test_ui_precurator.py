@@ -851,7 +851,7 @@ class DriverInitialize:
     timeout = 10
 
 
-@pytest.mark.skip()
+# @pytest.mark.skip()
 @allure.feature('Test for role "Предкуратор"')
 class TestPreCurator:
     @allure.title('Test authorization')
