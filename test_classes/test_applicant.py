@@ -1228,6 +1228,8 @@ class TestApplicant:
 
         download_doc()
 
+        time.sleep(1)
+
         for check_file in os.listdir(DriverInitialize.stuff_path):
             if check_file == 'Workers.csv':
                 assert True
@@ -1268,6 +1270,8 @@ class TestApplicant:
             assert False, 'Error with "Транспорт" page. Not expected page, or something else'
 
         download_doc()
+
+        time.sleep(1)
 
         for check_file in os.listdir(DriverInitialize.stuff_path):
             if check_file == 'Vehicles.csv':
@@ -1395,7 +1399,9 @@ class TestApplicant:
             until(EC.element_to_be_clickable(
             (By.XPATH, '//a[@href="javascript:submitWorkersCsvFileForm();"]')))
         download_worker.click()
+
         time.sleep(1)
+
         for check_file in os.listdir(DriverInitialize.stuff_path):
             if check_file == 'Applications.csv':
                 assert True
@@ -1408,7 +1414,9 @@ class TestApplicant:
             until(EC.element_to_be_clickable(
                 (By.XPATH, '//a[@href="javascript:submitDownloadVehicleCsvFileForm();"]')))
         download_vehicle.click()
+
         time.sleep(1)
+
         for check_file in os.listdir(DriverInitialize.stuff_path):
             if check_file == 'Applications.csv':
                 assert True
@@ -1585,6 +1593,8 @@ class TestApplicant:
 
     @allure.title('Test filter on page "Истекающие документы" from "Отчеты"')
     def test_reports_filter_expired_page(self):
+        time.sleep(1)
+
         open_filter = WebDriverWait(DriverInitialize.driver, DriverInitialize.timeout).until(EC.element_to_be_clickable(
             (By.ID, 'btnFilterDesktop')))
         open_filter.click()
